@@ -1,0 +1,24 @@
+# Barracuda WAF Security Scanner — Default Scan Profile
+# Enable/disable check categories
+
+scan_profile:
+  name: "Full Security Audit"
+  description: "All check categories enabled"
+
+checks:
+  waf_policies: true
+  ssl_tls: true
+  access_control: true
+  authentication: true
+  services: true
+  network: true
+  ddos_protection: true
+  bot_protection: true
+  api_security: true
+  logging_monitoring: true
+  firmware_updates: true
+
+settings:
+  timeout: 30
+  max_retries: 3
+  verbose: false

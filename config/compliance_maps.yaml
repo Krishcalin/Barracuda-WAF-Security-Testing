@@ -1,0 +1,172 @@
+# Compliance framework mappings for Barracuda WAF findings
+
+frameworks:
+  cis_barracuda:
+    name: "CIS Barracuda WAF Benchmark"
+    version: "1.0"
+
+  owasp_top10:
+    name: "OWASP Top 10 2021"
+    version: "2021"
+
+  pci_dss:
+    name: "PCI DSS v4.0"
+    version: "4.0"
+
+  nist_csf:
+    name: "NIST Cybersecurity Framework"
+    version: "2.0"
+
+# Finding-to-framework mapping
+mappings:
+  # WAF Policies
+  WAF-POL-001: { cis: "4.1.1", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-002: { cis: "4.1.2", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-003: { cis: "4.2.1", owasp: "A01:2021", pci: "6.4.1", nist: "PR.AC-7" }
+  WAF-POL-004: { cis: "4.2.2", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-005: { cis: "4.3.1", owasp: "A01:2021", pci: "6.4.1", nist: "PR.DS-5" }
+  WAF-POL-006: { cis: "4.3.2", owasp: "A02:2021", pci: "6.4.2", nist: "PR.DS-5" }
+  WAF-POL-007: { cis: "4.4.1", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-008: { cis: "4.4.2", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-009: { cis: "4.5.1", owasp: "A05:2021", pci: "6.4.1", nist: "PR.AC-4" }
+  WAF-POL-010: { cis: "4.5.2", owasp: "A01:2021", pci: "6.4.2", nist: "PR.DS-5" }
+  WAF-POL-011: { cis: "4.6.1", owasp: "A04:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-012: { cis: "4.6.2", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-013: { cis: "4.7.1", owasp: "A03:2021", pci: "6.4.1", nist: "PR.DS-5" }
+  WAF-POL-014: { cis: "4.7.2", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-015: { cis: "4.8.1", owasp: "A05:2021", pci: "6.4.2", nist: "PR.AC-4" }
+  WAF-POL-016: { cis: "4.8.2", owasp: "A01:2021", pci: "6.4.1", nist: "PR.DS-5" }
+  WAF-POL-017: { cis: "4.9.1", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-018: { cis: "4.9.2", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-019: { cis: "4.10.1", owasp: "A08:2021", pci: "6.4.2", nist: "PR.DS-5" }
+  WAF-POL-020: { cis: "4.10.2", owasp: "A04:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-021: { cis: "4.11.1", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-022: { cis: "4.11.2", owasp: "A01:2021", pci: "6.4.1", nist: "PR.DS-5" }
+  WAF-POL-023: { cis: "4.12.1", owasp: "A03:2021", pci: "6.4.2", nist: "PR.PT-3" }
+  WAF-POL-024: { cis: "4.12.2", owasp: "A06:2021", pci: "6.4.2", nist: "PR.IP-1" }
+  WAF-POL-025: { cis: "4.13.1", owasp: "A05:2021", pci: "6.4.1", nist: "PR.AC-4" }
+
+  # SSL/TLS
+  SSL-001: { cis: "3.1.1", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-002: { cis: "3.1.2", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-003: { cis: "3.2.1", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-004: { cis: "3.2.2", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-005: { cis: "3.3.1", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-006: { cis: "3.3.2", owasp: "A05:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-007: { cis: "3.4.1", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-008: { cis: "3.4.2", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-009: { cis: "3.5.1", owasp: "A02:2021", pci: "6.2.4", nist: "PR.DS-2" }
+  SSL-010: { cis: "3.5.2", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-011: { cis: "3.6.1", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-012: { cis: "3.6.2", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SSL-013: { cis: "3.7.1", owasp: "A06:2021", pci: "6.3.3", nist: "ID.RA-1" }
+  SSL-014: { cis: "3.7.2", owasp: "A06:2021", pci: "6.3.3", nist: "ID.RA-1" }
+  SSL-015: { cis: "3.8.1", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+
+  # Access Control
+  ACL-001: { cis: "5.1.1", owasp: "A01:2021", pci: "1.3.1", nist: "PR.AC-3" }
+  ACL-002: { cis: "5.1.2", owasp: "A01:2021", pci: "1.3.1", nist: "PR.AC-3" }
+  ACL-003: { cis: "5.2.1", owasp: "A01:2021", pci: "1.3.1", nist: "PR.AC-3" }
+  ACL-004: { cis: "5.2.2", owasp: "A01:2021", pci: "1.3.2", nist: "PR.AC-3" }
+  ACL-005: { cis: "5.3.1", owasp: "A04:2021", pci: "6.4.1", nist: "PR.AC-7" }
+  ACL-006: { cis: "5.3.2", owasp: "A04:2021", pci: "6.4.1", nist: "PR.AC-7" }
+  ACL-007: { cis: "5.4.1", owasp: "A07:2021", pci: "6.4.1", nist: "PR.AC-7" }
+  ACL-008: { cis: "5.4.2", owasp: "A01:2021", pci: "1.3.1", nist: "PR.AC-3" }
+  ACL-009: { cis: "5.5.1", owasp: "A01:2021", pci: "1.3.1", nist: "PR.AC-3" }
+  ACL-010: { cis: "5.5.2", owasp: "A04:2021", pci: "6.4.1", nist: "PR.AC-7" }
+  ACL-011: { cis: "5.6.1", owasp: "A01:2021", pci: "1.3.2", nist: "PR.AC-3" }
+  ACL-012: { cis: "5.6.2", owasp: "A01:2021", pci: "1.3.1", nist: "PR.AC-3" }
+  ACL-013: { cis: "5.7.1", owasp: "A01:2021", pci: "1.3.1", nist: "PR.AC-3" }
+  ACL-014: { cis: "5.7.2", owasp: "A04:2021", pci: "6.4.1", nist: "PR.AC-7" }
+  ACL-015: { cis: "5.8.1", owasp: "A01:2021", pci: "1.3.1", nist: "PR.AC-3" }
+
+  # Authentication
+  AUTH-001: { cis: "2.1.1", owasp: "A07:2021", pci: "8.3.1", nist: "PR.AC-1" }
+  AUTH-002: { cis: "2.1.2", owasp: "A07:2021", pci: "8.3.6", nist: "PR.AC-1" }
+  AUTH-003: { cis: "2.2.1", owasp: "A07:2021", pci: "8.3.6", nist: "PR.AC-1" }
+  AUTH-004: { cis: "2.2.2", owasp: "A07:2021", pci: "8.3.4", nist: "PR.AC-1" }
+  AUTH-005: { cis: "2.3.1", owasp: "A07:2021", pci: "8.6.1", nist: "PR.AC-7" }
+  AUTH-006: { cis: "2.3.2", owasp: "A07:2021", pci: "8.2.8", nist: "PR.AC-7" }
+  AUTH-007: { cis: "2.4.1", owasp: "A07:2021", pci: "8.3.1", nist: "PR.AC-1" }
+  AUTH-008: { cis: "2.4.2", owasp: "A07:2021", pci: "8.3.6", nist: "PR.AC-1" }
+  AUTH-009: { cis: "2.5.1", owasp: "A07:2021", pci: "8.4.2", nist: "PR.AC-7" }
+  AUTH-010: { cis: "2.5.2", owasp: "A02:2021", pci: "8.2.1", nist: "PR.AC-1" }
+  AUTH-011: { cis: "2.6.1", owasp: "A07:2021", pci: "8.3.4", nist: "PR.AC-1" }
+  AUTH-012: { cis: "2.6.2", owasp: "A07:2021", pci: "8.2.4", nist: "PR.AC-1" }
+
+  # Services
+  SVC-001: { cis: "3.1.1", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SVC-002: { cis: "3.1.2", owasp: "A05:2021", pci: "2.2.1", nist: "PR.IP-1" }
+  SVC-003: { cis: "6.1.1", owasp: "A05:2021", pci: "2.2.1", nist: "PR.IP-1" }
+  SVC-004: { cis: "6.1.2", owasp: "A05:2021", pci: "2.2.1", nist: "PR.IP-1" }
+  SVC-005: { cis: "6.2.1", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SVC-006: { cis: "6.2.2", owasp: "A05:2021", pci: "2.2.1", nist: "PR.IP-1" }
+  SVC-007: { cis: "6.3.1", owasp: "A05:2021", pci: "2.2.1", nist: "PR.IP-1" }
+  SVC-008: { cis: "6.3.2", owasp: "A05:2021", pci: "2.2.1", nist: "PR.IP-1" }
+  SVC-009: { cis: "6.4.1", owasp: "A02:2021", pci: "4.2.1", nist: "PR.DS-2" }
+  SVC-010: { cis: "6.4.2", owasp: "A05:2021", pci: "2.2.1", nist: "PR.IP-1" }
+  SVC-011: { cis: "6.5.1", owasp: "A09:2021", pci: "2.2.1", nist: "DE.CM-8" }
+  SVC-012: { cis: "6.5.2", owasp: "A05:2021", pci: "2.2.1", nist: "PR.IP-1" }
+
+  # Network
+  NET-001: { cis: "1.1.1", owasp: "A05:2021", pci: "1.3.1", nist: "PR.AC-5" }
+  NET-002: { cis: "1.1.2", owasp: "A05:2021", pci: "1.3.1", nist: "PR.AC-5" }
+  NET-003: { cis: "1.2.1", owasp: "A05:2021", pci: "1.3.1", nist: "PR.AC-5" }
+  NET-004: { cis: "1.2.2", owasp: "A05:2021", pci: "1.3.2", nist: "PR.AC-5" }
+  NET-005: { cis: "1.3.1", owasp: "A05:2021", pci: "1.3.1", nist: "PR.AC-5" }
+  NET-006: { cis: "1.3.2", owasp: "A05:2021", pci: "1.3.1", nist: "PR.AC-5" }
+  NET-007: { cis: "1.4.1", owasp: "A05:2021", pci: "1.3.4", nist: "PR.AC-5" }
+  NET-008: { cis: "1.4.2", owasp: "A05:2021", pci: "11.5.1", nist: "PR.PT-4" }
+  NET-009: { cis: "1.5.1", owasp: "A05:2021", pci: "1.3.1", nist: "PR.AC-5" }
+  NET-010: { cis: "1.5.2", owasp: "A05:2021", pci: "1.3.1", nist: "PR.AC-5" }
+
+  # DDoS
+  DDOS-001: { cis: "7.1.1", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+  DDOS-002: { cis: "7.1.2", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+  DDOS-003: { cis: "7.2.1", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+  DDOS-004: { cis: "7.2.2", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+  DDOS-005: { cis: "7.3.1", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+  DDOS-006: { cis: "7.3.2", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+  DDOS-007: { cis: "7.4.1", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+  DDOS-008: { cis: "7.4.2", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+  DDOS-009: { cis: "7.5.1", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+  DDOS-010: { cis: "7.5.2", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-4" }
+
+  # Bot Protection
+  BOT-001: { cis: "8.1.1", owasp: "A07:2021", pci: "6.4.1", nist: "PR.PT-3" }
+  BOT-002: { cis: "8.1.2", owasp: "A07:2021", pci: "6.4.1", nist: "PR.PT-3" }
+  BOT-003: { cis: "8.2.1", owasp: "A07:2021", pci: "6.4.1", nist: "PR.PT-3" }
+  BOT-004: { cis: "8.2.2", owasp: "A07:2021", pci: "6.4.1", nist: "PR.PT-3" }
+  BOT-005: { cis: "8.3.1", owasp: "A07:2021", pci: "6.4.1", nist: "PR.PT-3" }
+  BOT-006: { cis: "8.3.2", owasp: "A07:2021", pci: "6.4.1", nist: "PR.PT-3" }
+  BOT-007: { cis: "8.4.1", owasp: "A07:2021", pci: "6.4.1", nist: "PR.PT-3" }
+  BOT-008: { cis: "8.4.2", owasp: "A07:2021", pci: "6.4.1", nist: "PR.PT-3" }
+
+  # API Security
+  API-001: { cis: "9.1.1", owasp: "A03:2021", pci: "6.4.1", nist: "PR.DS-5" }
+  API-002: { cis: "9.1.2", owasp: "A03:2021", pci: "6.4.1", nist: "PR.DS-5" }
+  API-003: { cis: "9.2.1", owasp: "A08:2021", pci: "6.4.1", nist: "PR.DS-5" }
+  API-004: { cis: "9.2.2", owasp: "A03:2021", pci: "6.4.1", nist: "PR.DS-5" }
+  API-005: { cis: "9.3.1", owasp: "A03:2021", pci: "6.4.1", nist: "PR.DS-5" }
+  API-006: { cis: "9.3.2", owasp: "A08:2021", pci: "6.4.2", nist: "PR.DS-5" }
+  API-007: { cis: "9.4.1", owasp: "A04:2021", pci: "6.4.1", nist: "PR.PT-3" }
+  API-008: { cis: "9.4.2", owasp: "A03:2021", pci: "6.4.1", nist: "PR.DS-5" }
+
+  # Logging
+  LOG-001: { cis: "10.1.1", owasp: "A09:2021", pci: "10.2.1", nist: "DE.AE-3" }
+  LOG-002: { cis: "10.1.2", owasp: "A09:2021", pci: "10.2.1", nist: "DE.AE-3" }
+  LOG-003: { cis: "10.2.1", owasp: "A09:2021", pci: "10.3.1", nist: "PR.PT-1" }
+  LOG-004: { cis: "10.2.2", owasp: "A09:2021", pci: "10.2.1", nist: "DE.AE-3" }
+  LOG-005: { cis: "10.3.1", owasp: "A09:2021", pci: "10.5.1", nist: "PR.PT-1" }
+  LOG-006: { cis: "10.3.2", owasp: "A09:2021", pci: "10.2.1", nist: "DE.AE-3" }
+  LOG-007: { cis: "10.4.1", owasp: "A09:2021", pci: "10.2.2", nist: "DE.AE-3" }
+  LOG-008: { cis: "10.4.2", owasp: "A09:2021", pci: "10.2.1", nist: "DE.AE-3" }
+  LOG-009: { cis: "10.5.1", owasp: "A09:2021", pci: "10.7.1", nist: "PR.PT-1" }
+  LOG-010: { cis: "10.5.2", owasp: "A09:2021", pci: "10.2.1", nist: "DE.AE-3" }
+
+  # Firmware
+  FW-001: { cis: "11.1.1", owasp: "A06:2021", pci: "6.3.3", nist: "ID.RA-1" }
+  FW-002: { cis: "11.1.2", owasp: "A06:2021", pci: "6.3.3", nist: "ID.RA-1" }
+  FW-003: { cis: "11.2.1", owasp: "A06:2021", pci: "6.3.3", nist: "ID.RA-1" }
+  FW-004: { cis: "11.2.2", owasp: "A06:2021", pci: "6.3.3", nist: "RS.MI-3" }
+  FW-005: { cis: "11.3.1", owasp: "A06:2021", pci: "6.3.3", nist: "ID.RA-1" }

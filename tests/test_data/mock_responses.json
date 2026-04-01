@@ -1,0 +1,377 @@
+{
+  "login": {
+    "token": "eyJhbGciOiJIUzI1NiJ9.MOCK_TOKEN_FOR_TESTING"
+  },
+  "system": {
+    "data": {
+      "firmware-version": "11.2.1",
+      "model": "Barracuda WAF 460",
+      "hostname": "corp-waf-01",
+      "serial-number": "BAR-2024-DEMO-001",
+      "energize-updates": {
+        "status": "expired",
+        "expiry-date": "2025-06-15"
+      },
+      "auto-update": {
+        "status": "disabled"
+      },
+      "attack-definitions": {
+        "version": "4.2.118",
+        "last-update": "2025-03-01"
+      }
+    }
+  },
+  "services": {
+    "data": {
+      "services": [
+        {
+          "name": "webapp-prod",
+          "type": "HTTPS",
+          "port": "443",
+          "ip-address": "10.0.1.100",
+          "status": "active",
+          "security-policy": "default-policy",
+          "ssl-security": {
+            "enabled-protocols": "TLSv1.0 TLSv1.1 TLSv1.2",
+            "ciphers": "AES256-SHA:AES128-SHA:DES-CBC3-SHA:RC4-SHA",
+            "perfect-forward-secrecy": "off",
+            "ocsp-stapling": "off",
+            "allow-ssl-renegotiation": "enabled",
+            "client-authentication": "off"
+          },
+          "hsts": {
+            "status": "off"
+          },
+          "ssl-redirect": "off",
+          "backend": {
+            "ssl": "off",
+            "validate-certificate": "off"
+          },
+          "health-check": {
+            "status": "disabled"
+          },
+          "connection-pooling": "off",
+          "suppress-server-header": "off",
+          "custom-error-page": "default",
+          "bot-mitigation": {
+            "status": "disabled",
+            "captcha": { "status": "off" },
+            "fingerprinting": { "status": "off" },
+            "javascript-validation": { "status": "off" },
+            "known-bots": { "block-known-bad-bots": "off", "auto-update": "off" }
+          },
+          "slow-client-attack": {
+            "status": "disabled"
+          },
+          "connection-limits": {
+            "max-client-connections": "0",
+            "max-total-connections": "0"
+          },
+          "request-rate-limit": {
+            "status": "disabled"
+          },
+          "syn-flood-protection": {
+            "status": "disabled"
+          },
+          "client-timeout": "600",
+          "http-flood-protection": {
+            "status": "disabled"
+          },
+          "content-type-enforcement": "off",
+          "cors": {
+            "access-control-allow-origin": "*"
+          },
+          "x-forwarded-for": "disabled",
+          "trusted-hosts-group": "",
+          "ip-reputation": "off",
+          "rate-control": {},
+          "brute-force-prevention": {
+            "status": "disabled"
+          },
+          "web-scraping-protection": {
+            "status": "disabled"
+          },
+          "honeytraps": "off",
+          "caching": {
+            "cache-control": "public"
+          }
+        },
+        {
+          "name": "api-gateway",
+          "type": "HTTPS",
+          "port": "8443",
+          "ip-address": "10.0.1.101",
+          "status": "active",
+          "security-policy": "",
+          "ssl-security": {
+            "enabled-protocols": "TLSv1.2 TLSv1.3",
+            "ciphers": "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256",
+            "perfect-forward-secrecy": "on",
+            "ocsp-stapling": "on",
+            "allow-ssl-renegotiation": "disabled",
+            "client-authentication": "off"
+          },
+          "hsts": {
+            "status": "on",
+            "max-age": "7200"
+          },
+          "ssl-redirect": "on",
+          "backend": {
+            "ssl": "on",
+            "validate-certificate": "on"
+          },
+          "health-check": {
+            "status": "enabled"
+          },
+          "connection-pooling": "on",
+          "suppress-server-header": "on",
+          "custom-error-page": "custom",
+          "content-type-enforcement": "off",
+          "api-discovery": "",
+          "cors": {},
+          "rate-control": {},
+          "bot-mitigation": {},
+          "slow-client-attack": {
+            "status": "enabled",
+            "data-transfer-rate": "0"
+          },
+          "connection-limits": {
+            "max-client-connections": "10000"
+          },
+          "request-rate-limit": {},
+          "syn-flood-protection": {},
+          "brute-force-prevention": {},
+          "ip-reputation": "off",
+          "trusted-hosts-group": "",
+          "x-forwarded-for": "disabled",
+          "web-scraping-protection": {},
+          "honeytraps": ""
+        },
+        {
+          "name": "legacy-http",
+          "type": "HTTP",
+          "port": "80",
+          "ip-address": "10.0.1.102",
+          "status": "active",
+          "security-policy": "legacy-policy"
+        }
+      ]
+    }
+  },
+  "security-policies": {
+    "data": {
+      "security-policies": [
+        {
+          "name": "default-policy",
+          "attack-action": "log",
+          "cloaking": "off",
+          "request-limits": {
+            "max-url-length": "32768",
+            "max-header-value-length": "32768",
+            "max-request-length": "0",
+            "max-number-of-parameters": "0"
+          },
+          "cookie-security": {
+            "tamper-proof-mode": "off",
+            "secure-cookie": "no",
+            "http-only": "no"
+          },
+          "parameter-protection": {
+            "sql-injection": "off",
+            "cross-site-scripting": "off",
+            "os-command-injection": "off"
+          },
+          "url-normalization": {
+            "double-decoding": "off",
+            "path-traversal": "off"
+          },
+          "data-theft-protection": {
+            "credit-card-number": "off",
+            "social-security-number": "off",
+            "custom-pattern": ""
+          },
+          "suppress-return-codes": "off",
+          "allowed-methods": "GET POST PUT DELETE TRACE OPTIONS HEAD PATCH",
+          "input-validation": {
+            "allowed-content-types": ""
+          },
+          "json-security": {
+            "status": "off",
+            "max-depth": "0"
+          },
+          "xml-firewall": {
+            "disable-external-entities": "off",
+            "status": "off",
+            "max-element-depth": "0"
+          }
+        },
+        {
+          "name": "strict-policy",
+          "attack-action": "deny-and-log",
+          "cloaking": "on",
+          "request-limits": {
+            "max-url-length": "4096",
+            "max-header-value-length": "8192",
+            "max-request-length": "65536",
+            "max-number-of-parameters": "128"
+          },
+          "cookie-security": {
+            "tamper-proof-mode": "signed",
+            "secure-cookie": "yes",
+            "http-only": "yes"
+          },
+          "parameter-protection": {
+            "sql-injection": "on",
+            "cross-site-scripting": "on",
+            "os-command-injection": "on"
+          },
+          "url-normalization": {
+            "double-decoding": "on",
+            "path-traversal": "on"
+          },
+          "data-theft-protection": {
+            "credit-card-number": "on",
+            "social-security-number": "on",
+            "custom-pattern": "EMP-\\d{6}"
+          },
+          "suppress-return-codes": "on",
+          "allowed-methods": "GET POST HEAD",
+          "input-validation": {
+            "allowed-content-types": "application/json application/x-www-form-urlencoded"
+          },
+          "json-security": {
+            "status": "on",
+            "max-depth": "32",
+            "max-keys": "500"
+          },
+          "xml-firewall": {
+            "disable-external-entities": "on",
+            "status": "on",
+            "max-element-depth": "32"
+          }
+        }
+      ]
+    }
+  },
+  "signed-certificate": {
+    "data": {
+      "signed-certificate": [
+        {
+          "name": "webapp-cert",
+          "common-name": "webapp.corp.com",
+          "expiry": "2025-09-15T00:00:00Z",
+          "key-size": "1024",
+          "signature-algorithm": "sha1WithRSAEncryption"
+        },
+        {
+          "name": "api-cert",
+          "common-name": "api.corp.com",
+          "expiry": "2027-06-01T00:00:00Z",
+          "key-size": "2048",
+          "signature-algorithm": "sha256WithRSAEncryption"
+        }
+      ]
+    }
+  },
+  "trusted-certificate": {
+    "data": {
+      "trusted-certificate": []
+    }
+  },
+  "network_interface": {
+    "data": {
+      "interface": [
+        {
+          "name": "WAN",
+          "status": "up",
+          "ip-address": "10.0.1.100",
+          "mtu": "1500"
+        },
+        {
+          "name": "LAN",
+          "status": "up",
+          "ip-address": "192.168.1.1",
+          "mtu": "1500"
+        }
+      ]
+    }
+  },
+  "network_vlan": {
+    "data": {
+      "vlan": []
+    }
+  },
+  "cluster": {
+    "data": {
+      "status": "standalone"
+    }
+  },
+  "admin": {
+    "data": {
+      "admin-accounts": [
+        { "username": "admin", "role": "admin" },
+        { "username": "root", "role": "admin" }
+      ],
+      "password-policy": {
+        "min-length": "6",
+        "complexity": "off",
+        "max-age": "0",
+        "history": "0"
+      },
+      "mfa": {
+        "status": "disabled"
+      },
+      "session-timeout": "3600",
+      "login-banner": "",
+      "management-access-control": "any",
+      "ssh-enabled": "on",
+      "ssh-port": "22",
+      "telnet-enabled": "on",
+      "snmp": {
+        "version": "v2c",
+        "community": "public"
+      },
+      "management-port": "8443",
+      "management-interface": "WAN",
+      "account-lockout": {
+        "status": "disabled"
+      },
+      "audit-log": "off",
+      "ldap": {
+        "use-ssl": "off",
+        "server": "ldap.corp.com"
+      },
+      "roles": [
+        { "name": "admin" }
+      ],
+      "dns-servers": ["8.8.8.8"],
+      "ntp-servers": []
+    }
+  },
+  "syslog": {
+    "data": {
+      "syslog-servers": [],
+      "web-firewall-log": "off",
+      "access-log": "off",
+      "system-log": "off",
+      "log-retention": "30",
+      "notification-email": ""
+    }
+  },
+  "global-acls": {
+    "data": {
+      "global-acls": [
+        {
+          "action": "allow",
+          "source-address": "0.0.0.0/0",
+          "name": "allow-all"
+        }
+      ]
+    }
+  },
+  "rate-control": {
+    "data": {
+      "rate-control": []
+    }
+  }
+}

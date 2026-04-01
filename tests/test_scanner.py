@@ -18,6 +18,11 @@ from checks.bot_protection import BotProtectionChecker
 from checks.api_security import ApiSecurityChecker
 from checks.logging_monitoring import LoggingMonitoringChecker
 from checks.firmware_updates import FirmwareUpdatesChecker
+from checks.content_rules import ContentRulesChecker
+from checks.adaptive_profiling import AdaptiveProfilingChecker
+from checks.backup_recovery import BackupRecoveryChecker
+from checks.license_capacity import LicenseCapacityChecker
+from checks.cve_checks import CveChecker
 from utils.severity import compute_posture_score, score_to_grade, severity_counts
 
 
@@ -94,7 +99,7 @@ class MockApiClient:
         return self.data.get("rate-control", {}).get("data", {}).get("rate-control", [])
 
     def get_content_rules(self, service_name):
-        return []
+        return self.data.get("content-rules", {}).get("data", {}).get("content-rules", [])
 
     def get_logging_config(self):
         return self.data.get("syslog", {})
@@ -104,6 +109,12 @@ class MockApiClient:
 
     def get_cluster_config(self):
         return self.data.get("cluster", {})
+
+    def get_backup_config(self):
+        return self.data.get("backup", {})
+
+    def get_license_info(self):
+        return self.data.get("license", {})
 
 
 class TestWafPolicies(unittest.TestCase):
@@ -289,6 +300,111 @@ class TestFirmware(unittest.TestCase):
         findings = self.checker.run_all()
         eol = [f for f in findings if f["id"] == "FW-002"]
         self.assertTrue(len(eol) > 0, "Should flag EOL firmware version 11.x")
+
+
+class TestContentRules(unittest.TestCase):
+    def setUp(self):
+        self.client = MockApiClient(MOCK_DATA)
+        self.checker = ContentRulesChecker(self.client)
+
+    def test_findings_generated(self):
+        findings = self.checker.run_all()
+        self.assertGreater(len(findings), 0)
+
+    def test_passthrough_no_policy(self):
+        findings = self.checker.run_all()
+        passthrough = [f for f in findings if f["id"] == "CR-004"]
+        self.assertTrue(len(passthrough) > 0, "Should flag passthrough content rule without WAF policy")
+
+    def test_clickjacking_protection(self):
+        findings = self.checker.run_all()
+        xfo = [f for f in findings if f["id"] == "CR-007"]
+        self.assertTrue(len(xfo) > 0, "Should flag missing X-Frame-Options")
+
+    def test_csp_header(self):
+        findings = self.checker.run_all()
+        csp = [f for f in findings if f["id"] == "CR-010"]
+        self.assertTrue(len(csp) > 0, "Should flag missing CSP header")
+
+
+class TestAdaptiveProfiling(unittest.TestCase):
+    def setUp(self):
+        self.client = MockApiClient(MOCK_DATA)
+        self.checker = AdaptiveProfilingChecker(self.client)
+
+    def test_findings_generated(self):
+        findings = self.checker.run_all()
+        self.assertGreater(len(findings), 0)
+
+    def test_profiling_disabled(self):
+        findings = self.checker.run_all()
+        disabled = [f for f in findings if f["id"] == "AP-001"]
+        self.assertTrue(len(disabled) > 0, "Should flag disabled adaptive profiling")
+
+
+class TestBackupRecovery(unittest.TestCase):
+    def setUp(self):
+        self.client = MockApiClient(MOCK_DATA)
+        self.checker = BackupRecoveryChecker(self.client)
+
+    def test_findings_generated(self):
+        findings = self.checker.run_all()
+        self.assertGreater(len(findings), 0)
+
+    def test_backup_disabled(self):
+        findings = self.checker.run_all()
+        disabled = [f for f in findings if f["id"] == "BKP-001"]
+        self.assertTrue(len(disabled) > 0, "Should flag disabled backup")
+
+    def test_backup_encryption(self):
+        findings = self.checker.run_all()
+        enc = [f for f in findings if f["id"] == "BKP-003"]
+        self.assertTrue(len(enc) > 0, "Should flag unencrypted backups")
+
+    def test_ftp_transfer(self):
+        findings = self.checker.run_all()
+        ftp = [f for f in findings if f["id"] == "BKP-005"]
+        self.assertTrue(len(ftp) > 0, "Should flag FTP backup transfer")
+
+
+class TestLicenseCapacity(unittest.TestCase):
+    def setUp(self):
+        self.client = MockApiClient(MOCK_DATA)
+        self.checker = LicenseCapacityChecker(self.client)
+
+    def test_findings_generated(self):
+        findings = self.checker.run_all()
+        self.assertGreater(len(findings), 0)
+
+    def test_trial_license(self):
+        findings = self.checker.run_all()
+        trial = [f for f in findings if f["id"] == "LIC-002"]
+        self.assertTrue(len(trial) > 0, "Should flag trial license")
+
+    def test_atp_disabled(self):
+        findings = self.checker.run_all()
+        atp = [f for f in findings if f["id"] == "LIC-007"]
+        self.assertTrue(len(atp) > 0, "Should flag disabled ATP")
+
+
+class TestCveChecks(unittest.TestCase):
+    def setUp(self):
+        self.client = MockApiClient(MOCK_DATA)
+        self.checker = CveChecker(self.client)
+
+    def test_findings_generated(self):
+        findings = self.checker.run_all()
+        self.assertGreater(len(findings), 0)
+
+    def test_cve_matches(self):
+        findings = self.checker.run_all()
+        cves = [f for f in findings if f["category"] == "CVE Assessment" and f["severity"] in ("CRITICAL", "HIGH")]
+        self.assertGreater(len(cves), 0, "Should find CVEs for firmware 11.2.1")
+
+    def test_version_behind(self):
+        findings = self.checker.run_all()
+        behind = [f for f in findings if f["id"] == "CVE-AGE"]
+        self.assertTrue(len(behind) > 0, "Should flag firmware versions behind current")
 
 
 class TestScoring(unittest.TestCase):

@@ -7,8 +7,8 @@
 </p>
 
 <p align="center">
-  <a href="#security-check-categories"><img src="https://img.shields.io/badge/Security_Checks-130+-00D4FF?style=flat-square&logo=shield&logoColor=white" alt="Checks"></a>
-  <a href="#security-check-categories"><img src="https://img.shields.io/badge/Categories-11-7B61FF?style=flat-square&logo=layers&logoColor=white" alt="Categories"></a>
+  <a href="#security-check-categories"><img src="https://img.shields.io/badge/Security_Checks-180+-00D4FF?style=flat-square&logo=shield&logoColor=white" alt="Checks"></a>
+  <a href="#security-check-categories"><img src="https://img.shields.io/badge/Categories-16-7B61FF?style=flat-square&logo=layers&logoColor=white" alt="Categories"></a>
   <a href="#compliance-mapping"><img src="https://img.shields.io/badge/Frameworks-CIS%20|%20OWASP%20|%20PCI%20|%20NIST-00D4FF?style=flat-square&logo=verified&logoColor=white" alt="Compliance"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-7B61FF?style=flat-square" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python">
@@ -18,11 +18,11 @@
 
 ## Overview
 
-Connects to the **Barracuda WAF REST API** (read-only) and audits **130+ security checks** across 11 categories — WAF policies, SSL/TLS, access controls, authentication, services, network, DDoS protection, bot protection, API security, logging, and firmware. Generates interactive HTML and JSON reports with posture scoring, severity dashboards, and compliance mapping.
+Connects to the **Barracuda WAF REST API** (read-only) and audits **180+ security checks** across 16 categories — WAF policies, SSL/TLS, access controls, authentication, services, network, DDoS protection, bot protection, API security, logging, and firmware. Generates interactive HTML and JSON reports with posture scoring, severity dashboards, and compliance mapping.
 
 ### Key Capabilities
 
-- **130+ security checks** across 11 categories with actionable remediation guidance
+- **180+ security checks** across 16 categories with actionable remediation guidance
 - **Read-only assessment** — GET requests only, never modifies WAF configuration
 - **Posture scoring** — 0–100 score with letter grades (A–F) based on weighted severity
 - **Compliance mapping** — CIS Barracuda WAF Benchmark, OWASP Top 10 2021, PCI DSS v4.0, NIST CSF 2.0
@@ -48,6 +48,11 @@ Connects to the **Barracuda WAF REST API** (read-only) and audits **130+ securit
 | **API Security** | 8 | JSON/XML validation, content-type enforcement, CORS, payload limits, GraphQL, API discovery |
 | **Logging & Monitoring** | 10 | Syslog forwarding, SIEM integration (CEF/LEEF), WAF logging, audit logs, alerting |
 | **Firmware & Updates** | 5 | Firmware version, EOL status, Energize subscription, auto-updates, attack definitions |
+| **Content Rules** | 11 | URL rewriting, open redirects, response headers, CSP, X-Frame-Options, HSTS, Referrer-Policy |
+| **Adaptive Profiling** | 10 | Learning mode, URL/parameter profiles, positive security model, trusted host learning |
+| **Backup & Recovery** | 9 | Scheduled backups, encryption, offsite/cloud backup, HA config sync, FTP/SCP transfer |
+| **License & Capacity** | 10 | License status, throughput utilization, ATP, feature modules, SSL TPS capacity |
+| **CVE Assessment** | 12 | Known CVE matching against firmware, version gap analysis, vulnerability definition updates |
 
 ---
 
@@ -110,7 +115,7 @@ python barracuda_waf_scanner.py --host 192.168.1.100 --user admin --password MyP
 
 ### Available Check Categories
 
-`waf_policies` · `ssl_tls` · `access_control` · `authentication` · `services` · `network` · `ddos_protection` · `bot_protection` · `api_security` · `logging_monitoring` · `firmware_updates`
+`waf_policies` · `ssl_tls` · `access_control` · `authentication` · `services` · `network` · `ddos_protection` · `bot_protection` · `api_security` · `logging_monitoring` · `firmware_updates` · `content_rules` · `adaptive_profiling` · `backup_recovery` · `license_capacity` · `cve_checks`
 
 ---
 
@@ -190,7 +195,7 @@ Create custom profiles for targeted assessments (e.g., `ssl_only.yaml` with only
 ## Running Tests
 
 ```bash
-# Run all 32 unit tests
+# Run all 48 unit tests
 python -m unittest tests.test_scanner -v
 
 # Or with pytest
@@ -205,7 +210,7 @@ Tests use mock API responses (`tests/test_data/mock_responses.json`) — no live
 
 ```
 barracuda_waf_scanner.py          # Main CLI entry point
-checks/                           # Security check modules (11 modules)
+checks/                           # Security check modules (16 modules)
 ├── waf_policies.py               #   WAF policy configuration (25 checks)
 ├── ssl_tls.py                    #   SSL/TLS and certificates (15 checks)
 ├── access_control.py             #   IP ACLs, rate limiting, brute-force (15 checks)
@@ -216,7 +221,12 @@ checks/                           # Security check modules (11 modules)
 ├── bot_protection.py             #   Bot mitigation, CAPTCHA (8 checks)
 ├── api_security.py               #   JSON/XML, CORS, API limits (8 checks)
 ├── logging_monitoring.py         #   Syslog, SIEM, audit, alerts (10 checks)
-└── firmware_updates.py           #   Firmware, EOL, subscriptions (5 checks)
+├── firmware_updates.py           #   Firmware, EOL, subscriptions (5 checks)
+├── content_rules.py              #   URL rewriting, response headers, CSP (11 checks)
+├── adaptive_profiling.py         #   Learning mode, URL/parameter profiles (10 checks)
+├── backup_recovery.py            #   Backups, encryption, DR, HA sync (9 checks)
+├── license_capacity.py           #   License, throughput, ATP, features (10 checks)
+└── cve_checks.py                 #   Known CVE matching, version analysis (12 checks)
 utils/
 ├── api_client.py                 # Barracuda WAF REST API client (token auth, retry)
 ├── report_generator.py           # HTML + JSON report generation
@@ -226,7 +236,7 @@ config/
 └── compliance_maps.yaml          # CIS / OWASP / PCI DSS / NIST CSF mappings
 tests/
 ├── test_data/mock_responses.json # Mock API responses for offline testing
-└── test_scanner.py               # 32 unit tests for all check modules
+└── test_scanner.py               # 48 unit tests for all 16 check modules
 assets/
 └── banner.svg                    # Repository banner
 reports/                          # Generated scan reports (gitignored)

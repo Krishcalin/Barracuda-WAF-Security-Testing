@@ -9,6 +9,11 @@ from .bot_protection import BotProtectionChecker
 from .api_security import ApiSecurityChecker
 from .logging_monitoring import LoggingMonitoringChecker
 from .firmware_updates import FirmwareUpdatesChecker
+from .content_rules import ContentRulesChecker
+from .adaptive_profiling import AdaptiveProfilingChecker
+from .backup_recovery import BackupRecoveryChecker
+from .license_capacity import LicenseCapacityChecker
+from .cve_checks import CveChecker
 
 ALL_CHECKERS = {
     "waf_policies": WafPoliciesChecker,
@@ -22,4 +27,9 @@ ALL_CHECKERS = {
     "api_security": ApiSecurityChecker,
     "logging_monitoring": LoggingMonitoringChecker,
     "firmware_updates": FirmwareUpdatesChecker,
+    "content_rules": ContentRulesChecker,
+    "adaptive_profiling": AdaptiveProfilingChecker,
+    "backup_recovery": BackupRecoveryChecker,
+    "license_capacity": LicenseCapacityChecker,
+    "cve_checks": CveChecker,
 }

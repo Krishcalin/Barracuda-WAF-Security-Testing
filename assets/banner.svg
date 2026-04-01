@@ -138,11 +138,11 @@
     <g transform="translate(380, 280)">
       <!-- Checks badge -->
       <rect x="0" y="0" width="112" height="32" rx="6" fill="#00D4FF" fill-opacity="0.08" stroke="#00D4FF" stroke-opacity="0.25" stroke-width="1"/>
-      <text x="56" y="21" text-anchor="middle" font-family="'Inter','Segoe UI',sans-serif" font-size="12" font-weight="600" fill="#00D4FF">130+ Checks</text>
+      <text x="56" y="21" text-anchor="middle" font-family="'Inter','Segoe UI',sans-serif" font-size="12" font-weight="600" fill="#00D4FF">180+ Checks</text>
 
       <!-- Categories badge -->
       <rect x="124" y="0" width="120" height="32" rx="6" fill="#7B61FF" fill-opacity="0.08" stroke="#7B61FF" stroke-opacity="0.25" stroke-width="1"/>
-      <text x="184" y="21" text-anchor="middle" font-family="'Inter','Segoe UI',sans-serif" font-size="12" font-weight="600" fill="#7B61FF">11 Categories</text>
+      <text x="184" y="21" text-anchor="middle" font-family="'Inter','Segoe UI',sans-serif" font-size="12" font-weight="600" fill="#7B61FF">16 Categories</text>
 
       <!-- Compliance badge -->
       <rect x="256" y="0" width="108" height="32" rx="6" fill="#00D4FF" fill-opacity="0.08" stroke="#00D4FF" stroke-opacity="0.25" stroke-width="1"/>

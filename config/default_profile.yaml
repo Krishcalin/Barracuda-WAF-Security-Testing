@@ -17,6 +17,11 @@ checks:
   api_security: true
   logging_monitoring: true
   firmware_updates: true
+  content_rules: true
+  adaptive_profiling: true
+  backup_recovery: true
+  license_capacity: true
+  cve_checks: true
 
 settings:
   timeout: 30

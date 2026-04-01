@@ -170,6 +170,14 @@ class BarracudaWafClient:
         """Get HA/cluster configuration."""
         return self.get("/cluster") or {}
 
+    def get_backup_config(self):
+        """Get backup configuration."""
+        return self.get("/backup") or {}
+
+    def get_license_info(self):
+        """Get license and subscription information."""
+        return self.get("/license") or {}
+
 
 class AuthenticationError(Exception):
     pass

@@ -112,8 +112,13 @@ class WafPoliciesChecker:
 | API Security | ~8 | JSON/XML validation, content-type enforcement, schema validation, payload limits |
 | Logging & Monitoring | ~10 | Syslog forwarding, SIEM integration, audit logging, log retention, alerting |
 | Firmware & Updates | ~5 | Firmware version, EOL check, security patches, energize updates subscription |
+| Content Rules | ~11 | URL rewriting, open redirects, response headers, CSP, X-Frame-Options, HSTS, Permissions-Policy |
+| Adaptive Profiling | ~10 | Learning mode, URL/parameter profiles, positive security model, trusted host learning, auto-refresh |
+| Backup & Recovery | ~9 | Scheduled backups, encryption, offsite/cloud backup, HA config sync, transfer protocol security |
+| License & Capacity | ~10 | License status, throughput utilization, ATP, feature modules, SSL TPS, service limits |
+| CVE Assessment | ~12 | Known CVE matching against firmware version, version gap analysis, vulnerability definition updates |
 
-**Total: ~130 security checks**
+**Total: ~180 security checks across 16 categories**
 
 ## Key Conventions
 

@@ -373,5 +373,71 @@
     "data": {
       "rate-control": []
     }
+  },
+  "content-rules": {
+    "data": {
+      "content-rules": [
+        {
+          "name": "api-rewrite",
+          "url-match": "/api/*",
+          "host-match": "*",
+          "mode": "passthrough",
+          "web-firewall-policy": "",
+          "rewrite-to": "/backend/api/$1"
+        }
+      ]
+    }
+  },
+  "adaptive-profiling": {
+    "data": {
+      "status": "disabled",
+      "mode": "",
+      "trusted-hosts-only": "off",
+      "auto-refresh": "off"
+    }
+  },
+  "backup": {
+    "data": {
+      "status": "disabled",
+      "encryption": "off",
+      "protocol": "ftp",
+      "ftp-server": "backup.corp.com",
+      "retention": "1",
+      "last-backup": "",
+      "frequency": "monthly"
+    }
+  },
+  "cloud-backup": {
+    "data": {
+      "status": "disabled"
+    }
+  },
+  "license": {
+    "data": {
+      "status": "trial",
+      "expiry-date": "2026-06-01",
+      "max-services": "10",
+      "licensed-features": {
+        "advanced-threat-protection": "disabled",
+        "ip-reputation": "disabled",
+        "virus-scanning": "not-licensed",
+        "vulnerability-remediation": "disabled"
+      }
+    }
+  },
+  "advanced-threat-protection": {
+    "data": {
+      "status": "disabled"
+    }
+  },
+  "vulnerability-scanner": {
+    "data": {
+      "status": "disabled"
+    }
+  },
+  "active-ddos-prevention": {
+    "data": {
+      "status": "disabled"
+    }
   }
 }

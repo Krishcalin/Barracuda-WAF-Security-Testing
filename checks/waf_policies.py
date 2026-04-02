@@ -25,7 +25,8 @@ class WafPoliciesChecker:
                 "resource": "Global",
                 "actual": "No policies configured",
                 "expected": "At least one security policy active",
-                "recommendation": "Create and assign WAF security policies to all virtual services"
+                "recommendation": "Create and assign WAF security policies to all virtual services",
+                "remediation_cmd": "Create a security policy via WAF management console: SECURITY POLICIES > Create Policy"
             })
             return self.findings
 
@@ -60,7 +61,8 @@ class WafPoliciesChecker:
                 "resource": name,
                 "actual": action,
                 "expected": "deny-and-log",
-                "recommendation": "Set attack action to 'Deny and Log' to block attacks while retaining audit trail"
+                "recommendation": "Set attack action to 'Deny and Log' to block attacks while retaining audit trail",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + " -H 'Authorization: Basic <token>' -d \"{'attack-action':'deny-and-log'}'''")
             })
 
     def _check_cloaking(self, name, cfg):
@@ -74,7 +76,8 @@ class WafPoliciesChecker:
                 "resource": name,
                 "actual": cloaking or "disabled",
                 "expected": "Enabled",
-                "recommendation": "Enable response cloaking to suppress server version headers and error details from reaching clients"
+                "recommendation": "Enable response cloaking to suppress server version headers and error details from reaching clients",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + " -H 'Authorization: Basic <token>' -d \"{'cloaking':'on'}'''")
             })
 
     def _check_request_limits(self, name, cfg):
@@ -90,7 +93,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": str(max_url) if max_url else "Unlimited",
                     "expected": "<=4096",
-                    "recommendation": "Set max URL length to 4096 or less to prevent buffer overflow and path traversal attacks"
+                    "recommendation": "Set max URL length to 4096 or less to prevent buffer overflow and path traversal attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/request-limits -H 'Authorization: Basic <token>' -d \"{'max-url-length':'4096'}'''")
                 })
             max_header = int(limits.get("max-header-value-length", 0))
             if max_header == 0 or max_header > 8192:
@@ -102,7 +106,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": str(max_header) if max_header else "Unlimited",
                     "expected": "<=8192",
-                    "recommendation": "Set max header value length to 8192 or less to prevent header injection attacks"
+                    "recommendation": "Set max header value length to 8192 or less to prevent header injection attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/request-limits -H 'Authorization: Basic <token>' -d \"{'max-header-value-length':'8192'}'''")
                 })
             max_body = int(limits.get("max-request-length", 0))
             if max_body == 0 or max_body > 65536:
@@ -114,7 +119,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": str(max_body) if max_body else "Unlimited",
                     "expected": "<=65536",
-                    "recommendation": "Set max request body length to limit large payload attacks"
+                    "recommendation": "Set max request body length to limit large payload attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/request-limits -H 'Authorization: Basic <token>' -d \"{'max-request-length':'65536'}'''")
                 })
             max_params = int(limits.get("max-number-of-parameters", 0))
             if max_params == 0 or max_params > 256:
@@ -126,7 +132,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": str(max_params) if max_params else "Unlimited",
                     "expected": "<=256",
-                    "recommendation": "Limit the number of request parameters to prevent parameter pollution and hash collision attacks"
+                    "recommendation": "Limit the number of request parameters to prevent parameter pollution and hash collision attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/request-limits -H 'Authorization: Basic <token>' -d \"{'max-number-of-parameters':'256'}'''")
                 })
 
     def _check_cookie_security(self, name, cfg):
@@ -142,7 +149,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": tamper or "disabled",
                     "expected": "Signed or Encrypted",
-                    "recommendation": "Enable cookie tamper-proof mode (signed or encrypted) to prevent session manipulation"
+                    "recommendation": "Enable cookie tamper-proof mode (signed or encrypted) to prevent session manipulation",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/cookie-security -H 'Authorization: Basic <token>' -d \"{'tamper-proof-mode':'signed'}'''")
                 })
             secure = cookies.get("secure-cookie", cookies.get("add-secure-flag", ""))
             if isinstance(secure, str) and secure.lower() in ("no", "off", "disabled", ""):
@@ -154,7 +162,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "Secure flag disabled",
                     "expected": "Secure flag enabled",
-                    "recommendation": "Enable the Secure flag on cookies to prevent transmission over unencrypted connections"
+                    "recommendation": "Enable the Secure flag on cookies to prevent transmission over unencrypted connections",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/cookie-security -H 'Authorization: Basic <token>' -d \"{'secure-cookie':'yes'}'''")
                 })
             httponly = cookies.get("http-only", "")
             if isinstance(httponly, str) and httponly.lower() in ("no", "off", "disabled", ""):
@@ -166,7 +175,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "HttpOnly disabled",
                     "expected": "HttpOnly enabled",
-                    "recommendation": "Enable HttpOnly flag to prevent client-side JavaScript from accessing session cookies"
+                    "recommendation": "Enable HttpOnly flag to prevent client-side JavaScript from accessing session cookies",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/cookie-security -H 'Authorization: Basic <token>' -d \"{'http-only':'yes'}'''")
                 })
 
     def _check_parameter_protection(self, name, cfg):
@@ -182,7 +192,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "Enabled",
-                    "recommendation": "Enable SQL injection protection to block SQL injection attacks in request parameters"
+                    "recommendation": "Enable SQL injection protection to block SQL injection attacks in request parameters",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/parameter-protection -H 'Authorization: Basic <token>' -d \"{'sql-injection':'on'}'''")
                 })
             xss = param.get("cross-site-scripting", param.get("xss-check", ""))
             if isinstance(xss, str) and xss.lower() in ("off", "no", "disabled", ""):
@@ -194,7 +205,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "Enabled",
-                    "recommendation": "Enable XSS protection to block cross-site scripting attacks"
+                    "recommendation": "Enable XSS protection to block cross-site scripting attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/parameter-protection -H 'Authorization: Basic <token>' -d \"{'cross-site-scripting':'on'}'''")
                 })
             cmd = param.get("os-command-injection", param.get("command-injection", ""))
             if isinstance(cmd, str) and cmd.lower() in ("off", "no", "disabled", ""):
@@ -206,7 +218,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "Enabled",
-                    "recommendation": "Enable OS command injection protection to prevent command execution via web parameters"
+                    "recommendation": "Enable OS command injection protection to prevent command execution via web parameters",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/parameter-protection -H 'Authorization: Basic <token>' -d \"{'os-command-injection':'on'}'''")
                 })
 
     def _check_url_normalization(self, name, cfg):
@@ -222,7 +235,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "Enabled",
-                    "recommendation": "Enable double-decoding detection to catch URL obfuscation bypass attempts"
+                    "recommendation": "Enable double-decoding detection to catch URL obfuscation bypass attempts",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/url-normalization -H 'Authorization: Basic <token>' -d \"{'double-decoding':'on'}'''")
                 })
             path_trav = norm.get("path-traversal", norm.get("detect-path-traversal", ""))
             if isinstance(path_trav, str) and path_trav.lower() in ("off", "no", "disabled", ""):
@@ -234,7 +248,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "Enabled",
-                    "recommendation": "Enable path traversal detection to block directory traversal (../) attacks"
+                    "recommendation": "Enable path traversal detection to block directory traversal (../) attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/url-normalization -H 'Authorization: Basic <token>' -d \"{'path-traversal':'on'}'''")
                 })
 
     def _check_data_theft_protection(self, name, cfg):
@@ -250,7 +265,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "Enabled",
-                    "recommendation": "Enable credit card number masking in responses to prevent PCI data leakage"
+                    "recommendation": "Enable credit card number masking in responses to prevent PCI data leakage",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/data-theft-protection -H 'Authorization: Basic <token>' -d \"{'credit-card-number':'on'}'''")
                 })
             ssn = dtp.get("social-security-number", dtp.get("ssn", ""))
             if isinstance(ssn, str) and ssn.lower() in ("off", "no", "disabled", ""):
@@ -262,7 +278,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "Enabled",
-                    "recommendation": "Enable Social Security Number masking in outbound responses to prevent PII data leakage"
+                    "recommendation": "Enable Social Security Number masking in outbound responses to prevent PII data leakage",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/data-theft-protection -H 'Authorization: Basic <token>' -d \"{'social-security-number':'on'}'''")
                 })
             custom = dtp.get("custom-pattern", "")
             if not custom:
@@ -274,7 +291,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "No custom patterns",
                     "expected": "Custom patterns for sensitive data",
-                    "recommendation": "Define custom regex patterns for organization-specific sensitive data (employee IDs, internal codes)"
+                    "recommendation": "Define custom regex patterns for organization-specific sensitive data (employee IDs, internal codes)",
+                    "remediation_cmd": "Configure custom data theft patterns via WAF management console or REST API"
                 })
 
     def _check_outbound_response(self, name, cfg):
@@ -289,7 +307,8 @@ class WafPoliciesChecker:
                 "resource": name,
                 "actual": "Disabled",
                 "expected": "Enabled",
-                "recommendation": "Enable return code suppression to hide internal error codes (500, 503) from external users"
+                "recommendation": "Enable return code suppression to hide internal error codes (500, 503) from external users",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + " -H 'Authorization: Basic <token>' -d \"{'suppress-return-codes':'on'}'''")
             })
 
     def _check_url_protection(self, name, cfg):
@@ -305,7 +324,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "TRACE method permitted",
                     "expected": "TRACE method blocked",
-                    "recommendation": "Block HTTP TRACE method to prevent cross-site tracing (XST) attacks"
+                    "recommendation": "Block HTTP TRACE method to prevent cross-site tracing (XST) attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/url-protection -H 'Authorization: Basic <token>' -d \"{'allowed-methods':'GET POST HEAD'}'''")
                 })
 
     def _check_allowed_methods(self, name, cfg):
@@ -321,7 +341,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": methods,
                     "expected": "Only required methods (GET, POST, HEAD)",
-                    "recommendation": "Restrict allowed HTTP methods to only those required by the application"
+                    "recommendation": "Restrict allowed HTTP methods to only those required by the application",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + " -H 'Authorization: Basic <token>' -d \"{'allowed-methods':'GET POST HEAD'}'''")
                 })
 
     def _check_input_validation(self, name, cfg):
@@ -337,7 +358,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "All content types allowed",
                     "expected": "Only required content types (application/json, application/x-www-form-urlencoded, multipart/form-data)",
-                    "recommendation": "Restrict allowed content types to prevent content-type-based attacks"
+                    "recommendation": "Restrict allowed content types to prevent content-type-based attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/input-validation -H 'Authorization: Basic <token>' -d \"{'allowed-content-types':'application/json application/x-www-form-urlencoded'}'''")
                 })
 
     def _check_json_security(self, name, cfg):
@@ -353,7 +375,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "Enabled",
-                    "recommendation": "Enable JSON security to validate JSON request bodies and prevent JSON injection attacks"
+                    "recommendation": "Enable JSON security to validate JSON request bodies and prevent JSON injection attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/json-security -H 'Authorization: Basic <token>' -d \"{'status':'on'}'''")
                 })
             max_depth = int(json_sec.get("max-depth", 0))
             if max_depth == 0 or max_depth > 64:
@@ -365,7 +388,8 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": str(max_depth) if max_depth else "Unlimited",
                     "expected": "<=64",
-                    "recommendation": "Set JSON max nesting depth to prevent deeply nested payload DoS attacks"
+                    "recommendation": "Set JSON max nesting depth to prevent deeply nested payload DoS attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/json-security -H 'Authorization: Basic <token>' -d \"{'max-depth':'64'}'''")
                 })
 
     def _check_xml_firewall(self, name, cfg):
@@ -381,5 +405,6 @@ class WafPoliciesChecker:
                     "resource": name,
                     "actual": "External entities allowed",
                     "expected": "External entities disabled",
-                    "recommendation": "Disable XML external entities to prevent XXE injection attacks (OWASP A05)"
+                    "recommendation": "Disable XML external entities to prevent XXE injection attacks (OWASP A05)",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/xml-firewall -H 'Authorization: Basic <token>' -d \"{'disable-external-entities':'on'}'''")
                 })

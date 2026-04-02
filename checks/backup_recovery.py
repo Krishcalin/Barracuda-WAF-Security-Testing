@@ -51,7 +51,8 @@ class BackupRecoveryChecker:
                     "resource": "Backup Schedule",
                     "actual": "Scheduled backup disabled",
                     "expected": "Daily or weekly scheduled backups",
-                    "recommendation": "Enable scheduled configuration backups to ensure recovery capability after misconfiguration, hardware failure, or security incidents"
+                    "recommendation": "Enable scheduled configuration backups to ensure recovery capability after misconfiguration, hardware failure, or security incidents",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/backup -H 'Authorization: Basic <token>' -d \"{'status':'enabled','frequency':'daily'}'''"
                 })
             else:
                 freq = backup.get("frequency", backup.get("schedule", backup.get("interval", "")))
@@ -64,7 +65,8 @@ class BackupRecoveryChecker:
                         "resource": "Backup Schedule",
                         "actual": f"Backup frequency: {freq}",
                         "expected": "Daily or weekly backups",
-                        "recommendation": "Increase backup frequency to daily or weekly to minimize configuration loss window"
+                        "recommendation": "Increase backup frequency to daily or weekly to minimize configuration loss window",
+                        "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/backup -H 'Authorization: Basic <token>' -d \"{'frequency':'daily'}'''"
                     })
         elif not backup:
             self.findings.append({
@@ -75,7 +77,8 @@ class BackupRecoveryChecker:
                 "resource": "Backup Schedule",
                 "actual": "No backup configuration",
                 "expected": "Scheduled configuration backups",
-                "recommendation": "Configure scheduled backups — without backups, a WAF failure or misconfiguration could require complete reconfiguration"
+                "recommendation": "Configure scheduled backups — without backups, a WAF failure or misconfiguration could require complete reconfiguration",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/backup -H 'Authorization: Basic <token>' -d \"{'status':'enabled','frequency':'daily'}'''"
             })
 
     def _check_backup_encryption(self, cfg, admin):
@@ -91,7 +94,8 @@ class BackupRecoveryChecker:
                     "resource": "Backup Encryption",
                     "actual": "Backups not encrypted",
                     "expected": "AES-256 encrypted backups",
-                    "recommendation": "Enable backup encryption — unencrypted backups expose WAF credentials, SSL private keys, and security policy details"
+                    "recommendation": "Enable backup encryption — unencrypted backups expose WAF credentials, SSL private keys, and security policy details",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/backup -H 'Authorization: Basic <token>' -d \"{'encryption':'on'}'''"
                 })
 
     def _check_cloud_backup(self, cfg, admin):
@@ -107,7 +111,8 @@ class BackupRecoveryChecker:
                     "resource": "Cloud Backup",
                     "actual": "Cloud backup disabled",
                     "expected": "Offsite backup for disaster recovery",
-                    "recommendation": "Enable Barracuda Cloud backup or configure remote backup destination for offsite disaster recovery"
+                    "recommendation": "Enable Barracuda Cloud backup or configure remote backup destination for offsite disaster recovery",
+                    "remediation_cmd": "Enable cloud backup via Barracuda Cloud Control portal"
                 })
         elif not cloud:
             self.findings.append({
@@ -118,7 +123,8 @@ class BackupRecoveryChecker:
                 "resource": "Cloud Backup",
                 "actual": "No offsite backup",
                 "expected": "Offsite backup destination configured",
-                "recommendation": "Configure offsite backup (cloud or remote server) to protect against local hardware failure or site disaster"
+                "recommendation": "Configure offsite backup (cloud or remote server) to protect against local hardware failure or site disaster",
+                "remediation_cmd": "Enable cloud backup via Barracuda Cloud Control portal"
             })
 
     def _check_backup_destination(self, cfg, admin):
@@ -135,7 +141,8 @@ class BackupRecoveryChecker:
                     "resource": "Backup Transfer",
                     "actual": f"{protocol.upper()} — unencrypted transfer",
                     "expected": "SCP, SFTP, or HTTPS for encrypted backup transfer",
-                    "recommendation": "Change backup transfer protocol to SCP, SFTP, or HTTPS — FTP/TFTP transmit backup data (including secrets) in plaintext"
+                    "recommendation": "Change backup transfer protocol to SCP, SFTP, or HTTPS — FTP/TFTP transmit backup data (including secrets) in plaintext",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/backup -H 'Authorization: Basic <token>' -d \"{'protocol':'scp'}'''"
                 })
 
     def _check_config_export(self, cfg, admin):
@@ -151,7 +158,8 @@ class BackupRecoveryChecker:
                     "resource": "Config Export",
                     "actual": "No export date recorded",
                     "expected": "Regular configuration exports",
-                    "recommendation": "Perform regular manual or scheduled configuration exports and store securely for disaster recovery"
+                    "recommendation": "Perform regular manual or scheduled configuration exports and store securely for disaster recovery",
+                    "remediation_cmd": "Export configuration via: ADVANCED > Backup > Export Configuration"
                 })
 
     def _check_backup_retention(self, cfg, admin):
@@ -171,7 +179,8 @@ class BackupRecoveryChecker:
                     "resource": "Backup Retention",
                     "actual": f"{retention} backup(s) retained",
                     "expected": ">= 3 backups retained",
-                    "recommendation": "Retain at least 3 backup copies to allow rollback to a known-good configuration"
+                    "recommendation": "Retain at least 3 backup copies to allow rollback to a known-good configuration",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/backup -H 'Authorization: Basic <token>' -d \"{'retention':'7'}'''"
                 })
 
     def _check_ha_config_sync(self, cluster_cfg):
@@ -188,7 +197,8 @@ class BackupRecoveryChecker:
                         "resource": "HA Config Sync",
                         "actual": "Config sync disabled between HA nodes",
                         "expected": "Automatic config sync enabled",
-                        "recommendation": "Enable configuration synchronization between HA cluster nodes to ensure consistent security policies after failover"
+                        "recommendation": "Enable configuration synchronization between HA cluster nodes to ensure consistent security policies after failover",
+                        "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/cluster -H 'Authorization: Basic <token>' -d \"{'config-sync':'on'}'''"
                     })
 
     def _check_recovery_point(self, cfg, admin):
@@ -204,5 +214,6 @@ class BackupRecoveryChecker:
                     "resource": "Recovery Point",
                     "actual": "No successful backup on record",
                     "expected": "Recent successful backup within 7 days",
-                    "recommendation": "Verify backup jobs are completing successfully — an unverified backup provides false confidence in recovery capability"
+                    "recommendation": "Verify backup jobs are completing successfully — an unverified backup provides false confidence in recovery capability",
+                    "remediation_cmd": "curl -X POST https://<WAF_IP>:8443/restapi/v3.2/backup/action -H 'Authorization: Basic <token>' -d \"{'action':'backup-now'}'''"
                 })

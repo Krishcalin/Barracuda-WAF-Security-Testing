@@ -58,7 +58,8 @@ class SslTlsChecker:
                 "resource": "Global",
                 "actual": "No certificates configured",
                 "expected": "Valid SSL certificates installed",
-                "recommendation": "Install valid SSL/TLS certificates for all HTTPS services"
+                "recommendation": "Install valid SSL/TLS certificates for all HTTPS services",
+                "remediation_cmd": "Renew certificate and upload via: curl -X POST https://<WAF_IP>:8443/restapi/v3.2/signed-certificate -H 'Authorization: Basic <token>' -F 'signed_certificate=@new_cert.pem' -F 'key=@private.key'"
             })
 
         return self.findings
@@ -76,7 +77,8 @@ class SslTlsChecker:
                     "resource": name,
                     "actual": protocols,
                     "expected": "TLSv1.2 and TLSv1.3 only",
-                    "recommendation": "Disable SSLv2, SSLv3, TLSv1.0, and TLSv1.1. Enable only TLSv1.2 and TLSv1.3"
+                    "recommendation": "Disable SSLv2, SSLv3, TLSv1.0, and TLSv1.1. Enable only TLSv1.2 and TLSv1.3",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/ssl-security -H 'Authorization: Basic <token>' -d '{'enabled-protocols':'TLSv1.2 TLSv1.3'}'")
                 })
             if "TLSv1.3" not in protocols and "tlsv1.3" not in protocols.lower():
                 self.findings.append({
@@ -87,7 +89,8 @@ class SslTlsChecker:
                     "resource": name,
                     "actual": protocols,
                     "expected": "TLSv1.3 enabled",
-                    "recommendation": "Enable TLS 1.3 for improved security and performance"
+                    "recommendation": "Enable TLS 1.3 for improved security and performance",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/ssl-security -H 'Authorization: Basic <token>' -d '{'enabled-protocols':'TLSv1.2 TLSv1.3'}'")
                 })
 
     def _check_cipher_suites(self, name, ssl_cfg):
@@ -103,7 +106,8 @@ class SslTlsChecker:
                     "resource": name,
                     "actual": f"Weak ciphers found: {', '.join(weak)}",
                     "expected": "Only strong ciphers (AES-GCM, CHACHA20-POLY1305)",
-                    "recommendation": "Remove weak cipher suites (RC4, DES, 3DES, NULL, EXPORT, MD5) and enable only AES-256-GCM, AES-128-GCM, CHACHA20"
+                    "recommendation": "Remove weak cipher suites (RC4, DES, 3DES, NULL, EXPORT, MD5) and enable only AES-256-GCM, AES-128-GCM, CHACHA20",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/ssl-security -H 'Authorization: Basic <token>' -d '{'ciphers':'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256'}'")
                 })
             if "CBC" in ciphers.upper():
                 self.findings.append({
@@ -114,7 +118,8 @@ class SslTlsChecker:
                     "resource": name,
                     "actual": "CBC ciphers present",
                     "expected": "GCM or CHACHA20 ciphers only",
-                    "recommendation": "Replace CBC mode ciphers with GCM or CHACHA20-POLY1305 to prevent BEAST/POODLE attacks"
+                    "recommendation": "Replace CBC mode ciphers with GCM or CHACHA20-POLY1305 to prevent BEAST/POODLE attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/ssl-security -H 'Authorization: Basic <token>' -d '{'ciphers':'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256'}'")
                 })
 
     def _check_pfs(self, name, ssl_cfg):
@@ -128,7 +133,8 @@ class SslTlsChecker:
                 "resource": name,
                 "actual": "PFS disabled",
                 "expected": "PFS enabled (ECDHE/DHE key exchange)",
-                "recommendation": "Enable PFS to ensure past sessions cannot be decrypted if private key is compromised"
+                "recommendation": "Enable PFS to ensure past sessions cannot be decrypted if private key is compromised",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/ssl-security -H 'Authorization: Basic <token>' -d '{'perfect-forward-secrecy':'on'}'")
             })
 
     def _check_hsts(self, name, cfg):
@@ -144,7 +150,8 @@ class SslTlsChecker:
                     "resource": name,
                     "actual": "HSTS disabled",
                     "expected": "HSTS enabled with max-age >= 31536000",
-                    "recommendation": "Enable HSTS with max-age of at least one year (31536000) and include subdomains"
+                    "recommendation": "Enable HSTS with max-age of at least one year (31536000) and include subdomains",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/hsts -H 'Authorization: Basic <token>' -d '{'status':'on','max-age':'31536000'}'")
                 })
             else:
                 max_age = int(hsts.get("max-age", 0))
@@ -157,7 +164,8 @@ class SslTlsChecker:
                         "resource": name,
                         "actual": f"{max_age} seconds",
                         "expected": ">= 31536000 seconds (1 year)",
-                        "recommendation": "Increase HSTS max-age to at least 31536000 seconds (one year)"
+                        "recommendation": "Increase HSTS max-age to at least 31536000 seconds (one year)",
+                        "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/hsts -H 'Authorization: Basic <token>' -d '{'max-age':'31536000'}'")
                     })
         elif isinstance(hsts, str) and hsts.lower() in ("off", "no", "disabled", ""):
             self.findings.append({
@@ -168,7 +176,8 @@ class SslTlsChecker:
                 "resource": name,
                 "actual": "HSTS disabled",
                 "expected": "HSTS enabled with max-age >= 31536000",
-                "recommendation": "Enable HSTS to force browsers to always use HTTPS"
+                "recommendation": "Enable HSTS to force browsers to always use HTTPS",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/hsts -H 'Authorization: Basic <token>' -d '{'status':'on','max-age':'31536000'}'")
             })
 
     def _check_ssl_redirect(self, name, cfg):
@@ -182,7 +191,8 @@ class SslTlsChecker:
                 "resource": name,
                 "actual": "No HTTPS redirect",
                 "expected": "HTTP to HTTPS redirect enabled",
-                "recommendation": "Enable automatic HTTP to HTTPS redirection to prevent unencrypted access"
+                "recommendation": "Enable automatic HTTP to HTTPS redirection to prevent unencrypted access",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + " -H 'Authorization: Basic <token>' -d '{'ssl-redirect':'on'}'")
             })
 
     def _check_ocsp_stapling(self, name, ssl_cfg):
@@ -196,7 +206,8 @@ class SslTlsChecker:
                 "resource": name,
                 "actual": "OCSP stapling disabled",
                 "expected": "OCSP stapling enabled",
-                "recommendation": "Enable OCSP stapling for faster certificate revocation checking and improved privacy"
+                "recommendation": "Enable OCSP stapling for faster certificate revocation checking and improved privacy",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/ssl-security -H 'Authorization: Basic <token>' -d '{'ocsp-stapling':'on'}'")
             })
 
     def _check_client_cert(self, name, ssl_cfg):
@@ -210,7 +221,8 @@ class SslTlsChecker:
                 "resource": name,
                 "actual": "Client cert auth disabled",
                 "expected": "Consider mutual TLS for sensitive services",
-                "recommendation": "Consider enabling client certificate authentication (mTLS) for API or admin interfaces"
+                "recommendation": "Consider enabling client certificate authentication (mTLS) for API or admin interfaces",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/ssl-security -H 'Authorization: Basic <token>' -d '{'client-authentication':'optional'}'")
             })
 
     def _check_tls_renegotiation(self, name, ssl_cfg):
@@ -224,7 +236,8 @@ class SslTlsChecker:
                 "resource": name,
                 "actual": "SSL renegotiation enabled",
                 "expected": "SSL renegotiation disabled or secure only",
-                "recommendation": "Disable SSL renegotiation or ensure only secure renegotiation is permitted"
+                "recommendation": "Disable SSL renegotiation or ensure only secure renegotiation is permitted",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/ssl-security -H 'Authorization: Basic <token>' -d '{'allow-ssl-renegotiation':'disabled'}'")
             })
 
     def _check_certificate_expiry(self, cert):
@@ -239,7 +252,8 @@ class SslTlsChecker:
                 "resource": name,
                 "actual": "Expiry unknown",
                 "expected": "Valid certificate with known expiry",
-                "recommendation": "Verify certificate installation and ensure valid certificate is installed"
+                "recommendation": "Verify certificate installation and ensure valid certificate is installed",
+                "remediation_cmd": "Verify certificate installation via WAF management console"
             })
             return
         try:
@@ -261,7 +275,8 @@ class SslTlsChecker:
                     "resource": name,
                     "actual": f"Expired on {expiry}",
                     "expected": "Valid, non-expired certificate",
-                    "recommendation": "Immediately renew the expired SSL certificate"
+                    "recommendation": "Immediately renew the expired SSL certificate",
+                    "remediation_cmd": "Renew certificate and upload via: curl -X POST https://<WAF_IP>:8443/restapi/v3.2/signed-certificate -H 'Authorization: Basic <token>' -F 'signed_certificate=@new_cert.pem' -F 'key=@private.key'"
                 })
             elif days_left < 30:
                 self.findings.append({
@@ -272,7 +287,8 @@ class SslTlsChecker:
                     "resource": name,
                     "actual": f"Expires on {expiry} ({days_left} days)",
                     "expected": "Certificate valid for > 30 days",
-                    "recommendation": "Renew the SSL certificate before expiry to avoid service disruption"
+                    "recommendation": "Renew the SSL certificate before expiry to avoid service disruption",
+                    "remediation_cmd": "Renew certificate before expiry: curl -X POST https://<WAF_IP>:8443/restapi/v3.2/signed-certificate -H 'Authorization: Basic <token>' -F 'signed_certificate=@new_cert.pem' -F 'key=@private.key'"
                 })
         except Exception:
             pass
@@ -293,7 +309,8 @@ class SslTlsChecker:
                 "resource": name,
                 "actual": f"{key_size}-bit key",
                 "expected": ">= 2048-bit RSA or 256-bit ECDSA",
-                "recommendation": "Replace certificate with minimum 2048-bit RSA or 256-bit ECDSA key"
+                "recommendation": "Replace certificate with minimum 2048-bit RSA or 256-bit ECDSA key",
+                "remediation_cmd": "Generate new certificate: openssl req -newkey rsa:2048 -sha256 -nodes -keyout server.key -out server.csr"
             })
 
     def _check_signature_algorithm(self, cert):
@@ -308,5 +325,6 @@ class SslTlsChecker:
                 "resource": name,
                 "actual": sig_alg,
                 "expected": "SHA-256 or stronger",
-                "recommendation": "Replace certificate with one using SHA-256 or SHA-384 signature algorithm"
+                "recommendation": "Replace certificate with one using SHA-256 or SHA-384 signature algorithm",
+                "remediation_cmd": "Generate new certificate: openssl req -newkey rsa:2048 -sha256 -nodes -keyout server.key -out server.csr"
             })

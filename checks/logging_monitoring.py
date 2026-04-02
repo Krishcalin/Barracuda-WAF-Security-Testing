@@ -44,7 +44,8 @@ class LoggingMonitoringChecker:
                 "resource": "Syslog",
                 "actual": "No remote syslog",
                 "expected": "At least one remote syslog server",
-                "recommendation": "Configure remote syslog forwarding to a centralized log management or SIEM platform"
+                "recommendation": "Configure remote syslog forwarding to a centralized log management or SIEM platform",
+                "remediation_cmd": "curl -X POST https://<WAF_IP>:8443/restapi/v3.2/syslog/syslog-servers -H 'Authorization: Basic <token>' -d \"{'name':'siem-server','server':'<SIEM_IP>','port':'514'}'''"
             })
         elif isinstance(syslog, dict):
             if not syslog.get("server", syslog.get("host", "")):
@@ -56,7 +57,8 @@ class LoggingMonitoringChecker:
                     "resource": "Syslog",
                     "actual": "No server address",
                     "expected": "Valid syslog server configured",
-                    "recommendation": "Configure a syslog server address for centralized log collection"
+                    "recommendation": "Configure a syslog server address for centralized log collection",
+                    "remediation_cmd": "curl -X POST https://<WAF_IP>:8443/restapi/v3.2/syslog/syslog-servers -H 'Authorization: Basic <token>' -d \"{'name':'siem-server','server':'<SIEM_IP>','port':'514'}'''"
                 })
 
     def _check_syslog_tls(self, cfg):
@@ -74,7 +76,8 @@ class LoggingMonitoringChecker:
                         "resource": server.get("server", server.get("host", "Syslog Server")),
                         "actual": f"{protocol.upper()} transport",
                         "expected": "TLS-encrypted syslog (RFC 5425)",
-                        "recommendation": "Configure syslog over TLS to encrypt log data in transit"
+                        "recommendation": "Configure syslog over TLS to encrypt log data in transit",
+                        "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/syslog/syslog-servers/<SERVER> -H 'Authorization: Basic <token>' -d \"{'protocol':'TLS'}'''"
                     })
 
     def _check_web_firewall_logging(self, cfg):
@@ -88,7 +91,8 @@ class LoggingMonitoringChecker:
                 "resource": "WAF Logging",
                 "actual": "WAF logging disabled",
                 "expected": "Full WAF event logging enabled",
-                "recommendation": "Enable web firewall logging to capture all attack events, violations, and blocked requests"
+                "recommendation": "Enable web firewall logging to capture all attack events, violations, and blocked requests",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/syslog -H 'Authorization: Basic <token>' -d \"{'web-firewall-log':'on'}'''"
             })
         elif isinstance(wf_log, dict):
             level = wf_log.get("level", wf_log.get("log-level", ""))
@@ -101,7 +105,8 @@ class LoggingMonitoringChecker:
                     "resource": "WAF Logging",
                     "actual": f"Level: {level}",
                     "expected": "Warning or Verbose level",
-                    "recommendation": "Set WAF logging to Warning or Verbose level to capture all security-relevant events"
+                    "recommendation": "Set WAF logging to Warning or Verbose level to capture all security-relevant events",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/syslog -H 'Authorization: Basic <token>' -d \"{'web-firewall-log-level':'verbose'}'''"
                 })
 
     def _check_access_logging(self, cfg):
@@ -115,7 +120,8 @@ class LoggingMonitoringChecker:
                 "resource": "Access Log",
                 "actual": "Access logging disabled",
                 "expected": "Access logging enabled",
-                "recommendation": "Enable HTTP access logging for traffic analysis, forensics, and compliance requirements"
+                "recommendation": "Enable HTTP access logging for traffic analysis, forensics, and compliance requirements",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/syslog -H 'Authorization: Basic <token>' -d \"{'access-log':'on'}'''"
             })
 
     def _check_audit_logging(self, admin):
@@ -129,7 +135,8 @@ class LoggingMonitoringChecker:
                 "resource": "Audit Log",
                 "actual": "Audit logging disabled",
                 "expected": "Full admin action audit logging",
-                "recommendation": "Enable audit logging for all administrative actions — required for accountability and compliance"
+                "recommendation": "Enable audit logging for all administrative actions — required for accountability and compliance",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'audit-log':'on'}'''"
             })
 
     def _check_log_retention(self, cfg):
@@ -147,7 +154,8 @@ class LoggingMonitoringChecker:
                 "resource": "Log Retention",
                 "actual": f"{retention} days",
                 "expected": ">= 90 days (PCI DSS: 1 year)",
-                "recommendation": "Increase log retention to at least 90 days (365 days for PCI DSS compliance)"
+                "recommendation": "Increase log retention to at least 90 days (365 days for PCI DSS compliance)",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/syslog -H 'Authorization: Basic <token>' -d \"{'log-retention':'365'}'''"
             })
 
     def _check_siem_integration(self, cfg):
@@ -163,7 +171,8 @@ class LoggingMonitoringChecker:
                     "resource": "SIEM",
                     "actual": "SIEM integration disabled",
                     "expected": "CEF or LEEF format export enabled",
-                    "recommendation": "Enable CEF or LEEF log format export for SIEM integration (Splunk, QRadar, Sentinel)"
+                    "recommendation": "Enable CEF or LEEF log format export for SIEM integration (Splunk, QRadar, Sentinel)",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/syslog -H 'Authorization: Basic <token>' -d \"{'cef-log':'on'}'''"
                 })
         elif not siem:
             self.findings.append({
@@ -174,7 +183,8 @@ class LoggingMonitoringChecker:
                 "resource": "SIEM",
                 "actual": "No SIEM integration",
                 "expected": "SIEM platform integration",
-                "recommendation": "Configure SIEM integration for centralized security monitoring and correlation"
+                "recommendation": "Configure SIEM integration for centralized security monitoring and correlation",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/syslog -H 'Authorization: Basic <token>' -d \"{'cef-log':'on'}'''"
             })
 
     def _check_alert_policies(self, cfg):
@@ -190,7 +200,8 @@ class LoggingMonitoringChecker:
                     "resource": "Alerts",
                     "actual": "Alerts disabled",
                     "expected": "Alert notifications enabled",
-                    "recommendation": "Enable alert notifications for critical events (attacks, system failures, certificate expiry)"
+                    "recommendation": "Enable alert notifications for critical events (attacks, system failures, certificate expiry)",
+                    "remediation_cmd": "Configure alert policies via WAF management console: ADVANCED > Notifications"
                 })
         elif not alerts:
             self.findings.append({
@@ -201,7 +212,8 @@ class LoggingMonitoringChecker:
                 "resource": "Alerts",
                 "actual": "No alerts configured",
                 "expected": "Alert policies for critical events",
-                "recommendation": "Configure alert policies for attack detection, system health, and configuration changes"
+                "recommendation": "Configure alert policies for attack detection, system health, and configuration changes",
+                "remediation_cmd": "Configure alert policies via WAF management console: ADVANCED > Notifications"
             })
 
     def _check_system_logging(self, cfg):
@@ -215,7 +227,8 @@ class LoggingMonitoringChecker:
                 "resource": "System Log",
                 "actual": "System logging disabled",
                 "expected": "System logging enabled",
-                "recommendation": "Enable system logging to capture firmware updates, reboots, HA failovers, and configuration changes"
+                "recommendation": "Enable system logging to capture firmware updates, reboots, HA failovers, and configuration changes",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/syslog -H 'Authorization: Basic <token>' -d \"{'system-log':'on'}'''"
             })
 
     def _check_notification_config(self, cfg):
@@ -229,5 +242,6 @@ class LoggingMonitoringChecker:
                 "resource": "Notifications",
                 "actual": "No email recipient",
                 "expected": "Admin notification email configured",
-                "recommendation": "Configure an admin notification email address for critical alerts and system events"
+                "recommendation": "Configure an admin notification email address for critical alerts and system events",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/syslog -H 'Authorization: Basic <token>' -d \"{'system-log':'on'}'''"
             })

@@ -51,7 +51,8 @@ class AdaptiveProfilingChecker:
                     "resource": name,
                     "actual": "Adaptive profiling disabled",
                     "expected": "Adaptive profiling enabled for traffic learning",
-                    "recommendation": "Enable adaptive profiling to learn legitimate traffic patterns and build URL/parameter profiles for positive security enforcement"
+                    "recommendation": "Enable adaptive profiling to learn legitimate traffic patterns and build URL/parameter profiles for positive security enforcement",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/adaptive-profiling -H 'Authorization: Basic <token>' -d \"{'status':'enabled'}'''")
                 })
         elif not profiling:
             self.findings.append({
@@ -62,7 +63,8 @@ class AdaptiveProfilingChecker:
                 "resource": name,
                 "actual": "Not configured",
                 "expected": "Adaptive profiling enabled",
-                "recommendation": "Configure adaptive profiling to automatically learn application URL and parameter patterns"
+                "recommendation": "Configure adaptive profiling to automatically learn application URL and parameter patterns",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/adaptive-profiling -H 'Authorization: Basic <token>' -d \"{'status':'enabled'}'''")
             })
 
     def _check_learning_mode(self, name, cfg):
@@ -84,7 +86,8 @@ class AdaptiveProfilingChecker:
                         "resource": name,
                         "actual": f"Learning mode active, {duration} days configured",
                         "expected": "Learning period <= 30 days before switching to enforcement",
-                        "recommendation": "Review and finalize learned profiles — extended learning mode delays enforcement of positive security rules, leaving the WAF in a permissive state"
+                        "recommendation": "Review and finalize learned profiles — extended learning mode delays enforcement of positive security rules, leaving the WAF in a permissive state",
+                        "remediation_cmd": "Review learned profiles via WAF management console: WEBSITES > Adaptive Profiling"
                     })
                 else:
                     self.findings.append({
@@ -95,7 +98,8 @@ class AdaptiveProfilingChecker:
                         "resource": name,
                         "actual": f"Learning mode active ({duration} days)" if duration else "Learning mode active",
                         "expected": "Transition to enforcement after learning completes",
-                        "recommendation": "Monitor learning progress and transition to enforcement mode once sufficient traffic patterns have been captured"
+                        "recommendation": "Monitor learning progress and transition to enforcement mode once sufficient traffic patterns have been captured",
+                        "remediation_cmd": "Review learned profiles via WAF management console: WEBSITES > Adaptive Profiling"
                     })
 
     def _check_trusted_hosts_learning(self, name, cfg):
@@ -111,7 +115,8 @@ class AdaptiveProfilingChecker:
                     "resource": name,
                     "actual": "Learning from all traffic sources",
                     "expected": "Learning restricted to trusted hosts only",
-                    "recommendation": "Restrict adaptive profiling to learn only from trusted host IPs to prevent attackers from poisoning the learned profiles"
+                    "recommendation": "Restrict adaptive profiling to learn only from trusted host IPs to prevent attackers from poisoning the learned profiles",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/adaptive-profiling -H 'Authorization: Basic <token>' -d \"{'trusted-hosts-only':'on'}'''")
                 })
 
     def _check_url_profiles(self, name, cfg):
@@ -127,7 +132,8 @@ class AdaptiveProfilingChecker:
                     "resource": name,
                     "actual": "URL profiles not enforced",
                     "expected": "URL profiles enforced to restrict access to known paths",
-                    "recommendation": "Enable URL profile enforcement to restrict access to only learned/approved URL paths"
+                    "recommendation": "Enable URL profile enforcement to restrict access to only learned/approved URL paths",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/url-profiles -H 'Authorization: Basic <token>' -d \"{'status':'on'}'''")
                 })
             strict = url_profiles.get("strict-mode", url_profiles.get("strict-url-check", ""))
             if isinstance(strict, str) and strict.lower() in ("off", "no", "disabled", ""):
@@ -139,7 +145,8 @@ class AdaptiveProfilingChecker:
                     "resource": name,
                     "actual": "Lenient URL matching",
                     "expected": "Strict URL matching for tighter security",
-                    "recommendation": "Enable strict URL matching to block requests to URLs not in the learned profile"
+                    "recommendation": "Enable strict URL matching to block requests to URLs not in the learned profile",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/url-profiles -H 'Authorization: Basic <token>' -d \"{'strict-mode':'on'}'''")
                 })
 
     def _check_parameter_profiles(self, name, cfg):
@@ -155,7 +162,8 @@ class AdaptiveProfilingChecker:
                     "resource": name,
                     "actual": "Parameter profiles not enforced",
                     "expected": "Parameter profiles enforced with type/length constraints",
-                    "recommendation": "Enable parameter profile enforcement to validate parameter names, types, and lengths against learned patterns"
+                    "recommendation": "Enable parameter profile enforcement to validate parameter names, types, and lengths against learned patterns",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/parameter-profiles -H 'Authorization: Basic <token>' -d \"{'status':'on'}'''")
                 })
             max_val = param_profiles.get("max-value-length", param_profiles.get("max-parameter-value", 0))
             try:
@@ -171,7 +179,8 @@ class AdaptiveProfilingChecker:
                     "resource": name,
                     "actual": str(max_val) if max_val else "Unlimited",
                     "expected": "Appropriate limits based on learned patterns",
-                    "recommendation": "Set parameter max value length based on learned profiles to detect buffer overflow and injection attempts"
+                    "recommendation": "Set parameter max value length based on learned profiles to detect buffer overflow and injection attempts",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/parameter-profiles -H 'Authorization: Basic <token>' -d \"{'max-value-length':'4096'}'''")
                 })
 
     def _check_profiling_enforcement(self, name, cfg):
@@ -185,7 +194,8 @@ class AdaptiveProfilingChecker:
                 "resource": name,
                 "actual": f"Enforcement mode: {enforcement}",
                 "expected": "Active enforcement (block violations)",
-                "recommendation": "Switch adaptive profiling from passive/log-only to active enforcement to block requests that violate learned profiles"
+                "recommendation": "Switch adaptive profiling from passive/log-only to active enforcement to block requests that violate learned profiles",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/adaptive-profiling -H 'Authorization: Basic <token>' -d \"{'enforcement':'active'}'''")
             })
 
     def _check_positive_security_model(self, name, cfg):
@@ -199,7 +209,8 @@ class AdaptiveProfilingChecker:
                 "resource": name,
                 "actual": "Negative security model only (signature-based)",
                 "expected": "Positive + negative security model",
-                "recommendation": "Consider enabling positive security model (allow-list) in addition to signature-based detection for defense in depth"
+                "recommendation": "Consider enabling positive security model (allow-list) in addition to signature-based detection for defense in depth",
+                "remediation_cmd": "Enable positive security model via WAF management console: SECURITY POLICIES > Positive Security"
             })
 
     def _check_profile_stale(self, name, cfg):
@@ -217,5 +228,6 @@ class AdaptiveProfilingChecker:
                         "resource": name,
                         "actual": "Auto-refresh disabled",
                         "expected": "Periodic profile refresh to capture application changes",
-                        "recommendation": "Enable profile auto-refresh or schedule periodic re-learning to capture application changes over time"
+                        "recommendation": "Enable profile auto-refresh or schedule periodic re-learning to capture application changes over time",
+                        "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/adaptive-profiling -H 'Authorization: Basic <token>' -d \"{'auto-refresh':'on'}'''")
                     })

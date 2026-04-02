@@ -43,7 +43,8 @@ class NetworkChecker:
                 "resource": "Management Interface",
                 "actual": f"HTTP port {mgmt_port}",
                 "expected": "HTTPS port 8443",
-                "recommendation": "Configure the management interface to use HTTPS (port 8443) only"
+                "recommendation": "Configure the management interface to use HTTPS (port 8443) only",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'management-port':'8443'}'''"
             })
         mgmt_iface = cfg.get("management-interface", "")
         if not mgmt_iface or mgmt_iface == "WAN":
@@ -55,7 +56,8 @@ class NetworkChecker:
                 "resource": "Management Interface",
                 "actual": mgmt_iface or "Default (WAN)",
                 "expected": "Dedicated management interface or VLAN",
-                "recommendation": "Bind management interface to a dedicated management network or VLAN, not the WAN/data interface"
+                "recommendation": "Bind management interface to a dedicated management network or VLAN, not the WAN/data interface",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'management-interface':'MGMT'}'''"
             })
 
     def _check_vlan_separation(self, vlans):
@@ -68,7 +70,8 @@ class NetworkChecker:
                 "resource": "VLANs",
                 "actual": "No VLANs",
                 "expected": "VLAN segmentation for management, data, and HA traffic",
-                "recommendation": "Implement VLAN segmentation to separate management, data, and HA traffic"
+                "recommendation": "Implement VLAN segmentation to separate management, data, and HA traffic",
+                "remediation_cmd": "Configure VLANs via WAF management console: BASIC > IP Configuration > VLANs"
             })
 
     def _check_ha_configuration(self, cluster):
@@ -84,7 +87,8 @@ class NetworkChecker:
                     "resource": "HA/Cluster",
                     "actual": "Standalone mode",
                     "expected": "Active-Passive or Active-Active HA",
-                    "recommendation": "Configure HA clustering for redundancy to prevent single point of failure"
+                    "recommendation": "Configure HA clustering for redundancy to prevent single point of failure",
+                    "remediation_cmd": "Configure HA via WAF management console: ADVANCED > High Availability"
                 })
             else:
                 heartbeat_enc = data.get("heartbeat-encryption", data.get("cluster-encryption", ""))
@@ -97,7 +101,8 @@ class NetworkChecker:
                         "resource": "HA/Cluster",
                         "actual": "Heartbeat unencrypted",
                         "expected": "Encrypted heartbeat",
-                        "recommendation": "Enable encryption for HA heartbeat traffic to prevent cluster hijacking"
+                        "recommendation": "Enable encryption for HA heartbeat traffic to prevent cluster hijacking",
+                        "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/cluster -H 'Authorization: Basic <token>' -d \"{'heartbeat-encryption':'on'}'''"
                     })
         else:
             self.findings.append({
@@ -108,7 +113,8 @@ class NetworkChecker:
                 "resource": "HA/Cluster",
                 "actual": "No HA configuration",
                 "expected": "HA clustering configured",
-                "recommendation": "Configure HA for production environments to ensure availability"
+                "recommendation": "Configure HA for production environments to ensure availability",
+                "remediation_cmd": "Configure HA via WAF management console: ADVANCED > High Availability"
             })
 
     def _check_management_protocols(self, cfg):
@@ -124,7 +130,8 @@ class NetworkChecker:
                     "resource": "SSH",
                     "actual": "Port 22",
                     "expected": "Non-standard SSH port",
-                    "recommendation": "Change SSH to a non-standard port to reduce automated scanning exposure"
+                    "recommendation": "Change SSH to a non-standard port to reduce automated scanning exposure",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'ssh-port':'2222'}'''"
                 })
 
         telnet = cfg.get("telnet-enabled", cfg.get("telnet", ""))
@@ -137,7 +144,8 @@ class NetworkChecker:
                 "resource": "Telnet",
                 "actual": "Telnet enabled",
                 "expected": "Telnet disabled",
-                "recommendation": "Disable Telnet immediately — it transmits credentials in plaintext. Use SSH instead"
+                "recommendation": "Disable Telnet immediately — it transmits credentials in plaintext. Use SSH instead",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'telnet-enabled':'off'}'''"
             })
 
     def _check_snmp_security(self, cfg):
@@ -153,7 +161,8 @@ class NetworkChecker:
                     "resource": "SNMP",
                     "actual": f"SNMP {version}",
                     "expected": "SNMP v3 with authentication and encryption",
-                    "recommendation": "Upgrade to SNMPv3 with authentication (SHA) and encryption (AES) for secure monitoring"
+                    "recommendation": "Upgrade to SNMPv3 with authentication (SHA) and encryption (AES) for secure monitoring",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/snmp -H 'Authorization: Basic <token>' -d \"{'version':'v3'}'''"
                 })
             community = snmp.get("community", snmp.get("community-string", ""))
             if isinstance(community, str) and community.lower() in ("public", "private", "community"):
@@ -165,7 +174,8 @@ class NetworkChecker:
                     "resource": "SNMP",
                     "actual": f"Community: {community}",
                     "expected": "Strong, unique community string",
-                    "recommendation": "Change the SNMP community string from default to a complex, unique value"
+                    "recommendation": "Change the SNMP community string from default to a complex, unique value",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/snmp -H 'Authorization: Basic <token>' -d \"{'community':'<STRONG_STRING>'}'''"
                 })
 
     def _check_dns_config(self, cfg):
@@ -179,7 +189,8 @@ class NetworkChecker:
                 "resource": "DNS",
                 "actual": f"{len(dns)} DNS server(s)",
                 "expected": "At least 2 DNS servers for redundancy",
-                "recommendation": "Configure at least two DNS servers for redundancy"
+                "recommendation": "Configure at least two DNS servers for redundancy",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'ntp-servers':['pool.ntp.org','time.nist.gov']}'''"
             })
 
     def _check_ntp_config(self, cfg):
@@ -193,7 +204,8 @@ class NetworkChecker:
                 "resource": "NTP",
                 "actual": "No NTP servers configured",
                 "expected": "NTP configured for accurate timestamps",
-                "recommendation": "Configure NTP servers for accurate time synchronization — critical for log correlation and certificate validation"
+                "recommendation": "Configure NTP servers for accurate time synchronization — critical for log correlation and certificate validation",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'ntp-servers':['pool.ntp.org','time.nist.gov']}'''"
             })
 
     def _check_interface_security(self, interfaces):
@@ -215,5 +227,6 @@ class NetworkChecker:
                         "resource": name,
                         "actual": f"MTU {mtu}",
                         "expected": "Standard MTU 1500 unless jumbo frames required",
-                        "recommendation": "Verify jumbo frames are intentional — they can cause fragmentation issues and potential security risks"
+                        "recommendation": "Verify jumbo frames are intentional — they can cause fragmentation issues and potential security risks",
+                        "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'ntp-servers':['pool.ntp.org','time.nist.gov']}'''"
                     })

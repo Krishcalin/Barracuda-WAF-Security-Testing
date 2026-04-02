@@ -52,7 +52,8 @@ class ApiSecurityChecker:
                     "resource": name,
                     "actual": "JSON validation disabled",
                     "expected": "JSON validation enabled",
-                    "recommendation": "Enable JSON body validation to detect malformed payloads and injection attempts in JSON APIs"
+                    "recommendation": "Enable JSON body validation to detect malformed payloads and injection attempts in JSON APIs",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/json-security -H 'Authorization: Basic <token>' -d \"{'status':'on'}'''")
                 })
             max_keys = int(json_sec.get("max-keys", json_sec.get("max-object-keys", 0)))
             if max_keys == 0 or max_keys > 1000:
@@ -64,7 +65,8 @@ class ApiSecurityChecker:
                     "resource": name,
                     "actual": str(max_keys) if max_keys else "Unlimited",
                     "expected": "<= 1000",
-                    "recommendation": "Limit JSON max object keys to prevent hash collision DoS attacks"
+                    "recommendation": "Limit JSON max object keys to prevent hash collision DoS attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/json-security -H 'Authorization: Basic <token>' -d \"{'max-keys':'1000'}'''")
                 })
         elif not json_sec:
             self.findings.append({
@@ -75,7 +77,8 @@ class ApiSecurityChecker:
                 "resource": name,
                 "actual": "Not configured",
                 "expected": "JSON validation enabled for API services",
-                "recommendation": "Configure JSON security validation for all API-facing services"
+                "recommendation": "Configure JSON security validation for all API-facing services",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/json-security -H 'Authorization: Basic <token>' -d \"{'status':'on'}'''")
             })
 
     def _check_xml_validation(self, name, cfg):
@@ -91,7 +94,8 @@ class ApiSecurityChecker:
                     "resource": name,
                     "actual": "XML validation disabled",
                     "expected": "XML validation enabled",
-                    "recommendation": "Enable XML firewall to protect against XXE, XPath injection, and XML bomb attacks"
+                    "recommendation": "Enable XML firewall to protect against XXE, XPath injection, and XML bomb attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/xml-firewall -H 'Authorization: Basic <token>' -d \"{'status':'on'}'''")
                 })
             max_depth = int(xml_sec.get("max-element-depth", xml_sec.get("max-depth", 0)))
             if max_depth == 0 or max_depth > 64:
@@ -103,7 +107,8 @@ class ApiSecurityChecker:
                     "resource": name,
                     "actual": str(max_depth) if max_depth else "Unlimited",
                     "expected": "<= 64",
-                    "recommendation": "Limit XML element nesting depth to prevent billion-laughs and recursive entity expansion attacks"
+                    "recommendation": "Limit XML element nesting depth to prevent billion-laughs and recursive entity expansion attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/xml-firewall -H 'Authorization: Basic <token>' -d \"{'max-element-depth':'64'}'''")
                 })
 
     def _check_content_type_enforcement(self, name, cfg):
@@ -117,7 +122,8 @@ class ApiSecurityChecker:
                 "resource": name,
                 "actual": "No content-type restrictions",
                 "expected": "Content-Type header enforcement enabled",
-                "recommendation": "Enable content-type enforcement to reject requests with unexpected content types"
+                "recommendation": "Enable content-type enforcement to reject requests with unexpected content types",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + " -H 'Authorization: Basic <token>' -d \"{'content-type-enforcement':'on'}'''")
             })
 
     def _check_payload_limits(self, name, cfg):
@@ -133,7 +139,8 @@ class ApiSecurityChecker:
                     "resource": name,
                     "actual": f"{max_payload} bytes" if max_payload else "Unlimited",
                     "expected": "<= 5MB for API endpoints",
-                    "recommendation": "Set appropriate API payload size limits to prevent large-payload abuse"
+                    "recommendation": "Set appropriate API payload size limits to prevent large-payload abuse",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/request-limits -H 'Authorization: Basic <token>' -d \"{'max-request-length':'5242880'}'''")
                 })
 
     def _check_api_rate_limiting(self, name, cfg):
@@ -149,7 +156,8 @@ class ApiSecurityChecker:
                     "resource": name,
                     "actual": "API rate limiting disabled",
                     "expected": "API rate limiting enabled per endpoint",
-                    "recommendation": "Enable API-specific rate limiting to protect individual endpoints from abuse"
+                    "recommendation": "Enable API-specific rate limiting to protect individual endpoints from abuse",
+                    "remediation_cmd": ("curl -X POST https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/rate-control -H 'Authorization: Basic <token>' -d \"{'name':'api-rate','max-requests-per-second':'100'}'''")
                 })
 
     def _check_api_discovery(self, name, cfg):
@@ -163,7 +171,8 @@ class ApiSecurityChecker:
                 "resource": name,
                 "actual": "No API schema enforcement",
                 "expected": "OpenAPI/Swagger schema enforcement",
-                "recommendation": "Consider importing an OpenAPI specification for positive security model enforcement on API endpoints"
+                "recommendation": "Consider importing an OpenAPI specification for positive security model enforcement on API endpoints",
+                "remediation_cmd": "Import OpenAPI spec via WAF management console: WEBSITES > API Discovery"
             })
 
     def _check_cors_policy(self, name, cfg):
@@ -179,7 +188,8 @@ class ApiSecurityChecker:
                     "resource": name,
                     "actual": "Access-Control-Allow-Origin: *",
                     "expected": "Specific trusted origins only",
-                    "recommendation": "Restrict CORS to specific trusted origins instead of wildcard (*) to prevent cross-origin attacks"
+                    "recommendation": "Restrict CORS to specific trusted origins instead of wildcard (*) to prevent cross-origin attacks",
+                    "remediation_cmd": "Import OpenAPI spec via WAF management console: WEBSITES > API Discovery"
                 })
 
     def _check_graphql_protection(self, name, cfg):
@@ -195,5 +205,6 @@ class ApiSecurityChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "GraphQL depth/complexity limits enabled",
-                    "recommendation": "Enable GraphQL protection with query depth and complexity limits to prevent DoS via nested queries"
+                    "recommendation": "Enable GraphQL protection with query depth and complexity limits to prevent DoS via nested queries",
+                    "remediation_cmd": ("curl -X POST https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/rate-control -H 'Authorization: Basic <token>' -d \"{'name':'api-rate','max-requests-per-second':'100'}'''")
                 })

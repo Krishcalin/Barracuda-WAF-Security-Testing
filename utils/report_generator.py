@@ -63,6 +63,7 @@ def generate_html_report(findings, metadata, output_path):
               <tr><th>Current Value</th><td>{html.escape(str(f.get('actual', '')))}</td></tr>
               <tr><th>Expected Value</th><td>{html.escape(str(f.get('expected', '')))}</td></tr>
               <tr><th>Recommendation</th><td>{html.escape(str(f.get('recommendation', '')))}</td></tr>
+              {f'<tr><th>Remediation</th><td><code class="remediation-cmd">{html.escape(str(f.get("remediation_cmd", "")))}</code></td></tr>' if f.get('remediation_cmd') else ''}
             </table>
           </div>
         </div>"""
@@ -105,6 +106,14 @@ a{{color:#00d4ff;text-decoration:none}}
 .back-link{{display:inline-flex;align-items:center;gap:8px;color:#8b92a5;margin-bottom:24px;font-size:14px}}
 .back-link:hover{{color:#00d4ff}}
 
+/* Logo */
+.report-logo{{display:flex;align-items:center;gap:12px;margin-bottom:16px}}
+.report-logo svg{{width:40px;height:40px;flex-shrink:0}}
+.report-logo-text{{font-size:20px;font-weight:700;letter-spacing:-0.3px}}
+.report-logo-text span:first-child{{color:#fff}}
+.report-logo-text span:last-child{{color:#00d4ff}}
+.report-logo-sub{{font-size:11px;color:#8b92a5;letter-spacing:0.5px;text-transform:uppercase}}
+
 /* Header */
 .report-header{{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(123,97,255,.08));border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:32px;margin-bottom:24px}}
 .report-title{{font-size:24px;font-weight:700;color:#fff;margin-bottom:8px}}
@@ -145,6 +154,9 @@ a{{color:#00d4ff;text-decoration:none}}
 .filters select{{min-width:140px}}
 .filters input:focus,.filters select:focus{{outline:none;border-color:#00d4ff}}
 
+/* Remediation */
+.remediation-cmd{{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:6px;padding:8px 12px;display:block;white-space:pre-wrap;word-break:break-all;color:#00d4ff;line-height:1.5}}
+
 /* Findings */
 .finding{{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;margin-bottom:8px;overflow:hidden}}
 .finding-header{{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:background .15s}}
@@ -177,6 +189,21 @@ a{{color:#00d4ff;text-decoration:none}}
   <a href="../index.html" class="back-link">&#8249; Back to Portal</a>
 
   <div class="report-header">
+    <div class="report-logo">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2L6 9v12c0 9.33 5.97 18.06 14 20 8.03-1.94 14-10.67 14-20V9L20 2z" fill="rgba(0,212,255,0.08)" stroke="#00D4FF" stroke-width="1.5"/>
+        <path d="M20 8l-9 4.5v7.5c0 6.22 3.63 12.04 9 13.5 5.37-1.46 9-7.28 9-13.5v-7.5L20 8z" fill="rgba(0,212,255,0.05)" stroke="#00D4FF" stroke-width="0.5" opacity="0.6"/>
+        <circle cx="17" cy="18" r="1.5" fill="#00D4FF" opacity="0.8"/>
+        <circle cx="23" cy="18" r="1.5" fill="#00D4FF" opacity="0.8"/>
+        <circle cx="20" cy="23" r="1.5" fill="#00D4FF" opacity="0.8"/>
+        <circle cx="17" cy="28" r="1" fill="#00D4FF" opacity="0.5"/>
+        <circle cx="23" cy="28" r="1" fill="#00D4FF" opacity="0.5"/>
+      </svg>
+      <div>
+        <div class="report-logo-text"><span>Phalanx</span><span>Cyber</span></div>
+        <div class="report-logo-sub">Open-Source Security Tools</div>
+      </div>
+    </div>
     <div class="report-title">Barracuda WAF Security Assessment</div>
     <div class="report-meta">
       <span>Target: {html.escape(metadata.get('target', 'Unknown'))}</span>

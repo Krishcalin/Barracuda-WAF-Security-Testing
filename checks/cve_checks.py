@@ -170,7 +170,8 @@ class CveChecker:
                 "resource": "System",
                 "actual": "Firmware version unknown",
                 "expected": "Known firmware version for CVE matching",
-                "recommendation": "Verify firmware version manually and check against Barracuda security advisories"
+                "recommendation": "Verify firmware version manually and check against Barracuda security advisories",
+                "remediation_cmd": "Verify firmware version via WAF management console: ADVANCED > Firmware Update"
             })
             return self.findings
 
@@ -205,7 +206,8 @@ class CveChecker:
                 "resource": f"Firmware {version}",
                 "actual": f"Version {version} — no known CVE matches in database",
                 "expected": "Regular CVE monitoring",
-                "recommendation": "Continue monitoring Barracuda security advisories and NIST NVD for new vulnerabilities"
+                "recommendation": "Continue monitoring Barracuda security advisories and NIST NVD for new vulnerabilities",
+                "remediation_cmd": "Continue monitoring Barracuda security advisories at https://www.barracuda.com/support/security-advisories"
             })
 
     def _check_security_advisory_age(self, version):
@@ -220,7 +222,8 @@ class CveChecker:
                 "resource": f"Firmware {version}",
                 "actual": f"Major version {v[0]}, current is {latest_major}.x",
                 "expected": f"Within 1-2 major versions of current ({latest_major}.x)",
-                "recommendation": f"Upgrade firmware to version {latest_major}.x — older major versions may contain unpatched vulnerabilities not yet assigned CVE IDs"
+                "recommendation": f"Upgrade firmware to version {latest_major}.x — older major versions may contain unpatched vulnerabilities not yet assigned CVE IDs",
+                "remediation_cmd": "Upgrade firmware via: ADVANCED > Firmware Update"
             })
 
     def _check_vulnerability_database(self, cfg):
@@ -236,5 +239,6 @@ class CveChecker:
                     "resource": "Vulnerability Database",
                     "actual": "Auto-update disabled",
                     "expected": "Automatic vulnerability definition updates",
-                    "recommendation": "Enable automatic vulnerability definition updates to detect newly discovered attack patterns and CVEs"
+                    "recommendation": "Enable automatic vulnerability definition updates to detect newly discovered attack patterns and CVEs",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/system/vulnerability-definitions -H 'Authorization: Basic <token>' -d \"{'auto-update':'on'}'''"
                 })

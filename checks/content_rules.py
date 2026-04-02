@@ -46,7 +46,8 @@ class ContentRulesChecker:
                 "resource": name,
                 "actual": "No content rules defined",
                 "expected": "Content rules for URL routing and access control",
-                "recommendation": "Consider configuring content rules to enforce URL-based routing and restrict access to sensitive paths"
+                "recommendation": "Consider configuring content rules to enforce URL-based routing and restrict access to sensitive paths",
+                "remediation_cmd": "Configure content rules via WAF management console: WEBSITES > Content Rules"
             })
 
     def _check_open_redirects(self, name, rules, cfg):
@@ -65,7 +66,8 @@ class ContentRulesChecker:
                             "resource": name,
                             "actual": f"Redirect target uses dynamic substitution: {target}",
                             "expected": "Redirect targets should be fixed URLs or validated domains",
-                            "recommendation": "Avoid dynamic redirect targets derived from user input — use fixed destination URLs or validate against a whitelist of allowed domains"
+                            "recommendation": "Avoid dynamic redirect targets derived from user input — use fixed destination URLs or validate against a whitelist of allowed domains",
+                            "remediation_cmd": "Review and restrict redirect targets to fixed URLs via WAF management console"
                         })
 
         for rule in (rules if isinstance(rules, list) else []):
@@ -82,7 +84,8 @@ class ContentRulesChecker:
                         "resource": name,
                         "actual": f"Redirect to {redirect} for host '{host_match or '*'}'",
                         "expected": "Specific host matching for external redirects",
-                        "recommendation": "Restrict host-match to specific domains when configuring external redirects"
+                        "recommendation": "Restrict host-match to specific domains when configuring external redirects",
+                        "remediation_cmd": "Review and restrict redirect targets to fixed URLs via WAF management console"
                     })
 
     def _check_rewrite_security(self, name, rules, cfg):
@@ -98,7 +101,8 @@ class ContentRulesChecker:
                         "resource": name,
                         "actual": f"Rewrite target contains traversal: {rewrite}",
                         "expected": "No path traversal sequences in rewrite targets",
-                        "recommendation": "Remove path traversal sequences (../) from URL rewrite rules to prevent directory escape"
+                        "recommendation": "Remove path traversal sequences (../) from URL rewrite rules to prevent directory escape",
+                        "remediation_cmd": "Remove path traversal sequences from URL rewrite rules via WAF management console"
                     })
 
             mode = rule.get("mode", rule.get("rewrite-mode", ""))
@@ -113,7 +117,8 @@ class ContentRulesChecker:
                         "resource": name,
                         "actual": f"Passthrough mode, no WAF policy on rule '{rule.get('name', 'unnamed')}'",
                         "expected": "WAF security policy assigned to all content rules",
-                        "recommendation": "Assign a WAF security policy to content rules operating in passthrough mode to ensure traffic inspection"
+                        "recommendation": "Assign a WAF security policy to content rules operating in passthrough mode to ensure traffic inspection",
+                        "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/content-rules/<RULE> -H 'Authorization: Basic <token>' -d \"{'web-firewall-policy':'default-policy'}'''")
                     })
 
     def _check_response_headers(self, name, cfg):
@@ -134,7 +139,8 @@ class ContentRulesChecker:
                         "resource": name,
                         "actual": f"Headers still exposed: {', '.join(sensitive)}",
                         "expected": "Remove X-Powered-By, X-AspNet-Version, Server headers",
-                        "recommendation": "Configure response header removal for technology fingerprinting headers (X-Powered-By, X-AspNet-Version, Server)"
+                        "recommendation": "Configure response header removal for technology fingerprinting headers (X-Powered-By, X-AspNet-Version, Server)",
+                        "remediation_cmd": "Configure response header removal: WEBSITES > Response Headers"
                     })
 
     def _check_security_headers(self, name, cfg):
@@ -159,7 +165,8 @@ class ContentRulesChecker:
                     "resource": name,
                     "actual": "HSTS header not present in responses",
                     "expected": "Strict-Transport-Security: max-age=31536000; includeSubDomains",
-                    "recommendation": "Add HSTS header via response header insertion or enable the built-in HSTS feature"
+                    "recommendation": "Add HSTS header via response header insertion or enable the built-in HSTS feature",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/hsts -H 'Authorization: Basic <token>' -d \"{'status':'on','max-age':'31536000'}'''")
                 })
 
     def _check_clickjacking_protection(self, name, cfg):
@@ -174,7 +181,8 @@ class ContentRulesChecker:
                 "resource": name,
                 "actual": "No X-Frame-Options or CSP frame-ancestors header",
                 "expected": "X-Frame-Options: DENY or SAMEORIGIN",
-                "recommendation": "Add X-Frame-Options header (DENY or SAMEORIGIN) or CSP frame-ancestors directive to prevent clickjacking"
+                "recommendation": "Add X-Frame-Options header (DENY or SAMEORIGIN) or CSP frame-ancestors directive to prevent clickjacking",
+                "remediation_cmd": "Add X-Frame-Options header: WEBSITES > Response Headers > Insert Header"
             })
 
     def _check_content_type_options(self, name, cfg):
@@ -189,7 +197,8 @@ class ContentRulesChecker:
                 "resource": name,
                 "actual": "No X-Content-Type-Options header",
                 "expected": "X-Content-Type-Options: nosniff",
-                "recommendation": "Add X-Content-Type-Options: nosniff header to prevent MIME type sniffing attacks"
+                "recommendation": "Add X-Content-Type-Options: nosniff header to prevent MIME type sniffing attacks",
+                "remediation_cmd": "Add X-Content-Type-Options: nosniff via: WEBSITES > Response Headers"
             })
 
     def _check_referrer_policy(self, name, cfg):
@@ -204,7 +213,8 @@ class ContentRulesChecker:
                 "resource": name,
                 "actual": "No Referrer-Policy header",
                 "expected": "Referrer-Policy: strict-origin-when-cross-origin",
-                "recommendation": "Add Referrer-Policy header to control referrer information leakage to third-party sites"
+                "recommendation": "Add Referrer-Policy header to control referrer information leakage to third-party sites",
+                "remediation_cmd": "Add Referrer-Policy: strict-origin-when-cross-origin via: WEBSITES > Response Headers"
             })
 
     def _check_csp_header(self, name, cfg):
@@ -219,7 +229,8 @@ class ContentRulesChecker:
                 "resource": name,
                 "actual": "No CSP header",
                 "expected": "Content-Security-Policy with restrictive directives",
-                "recommendation": "Configure Content-Security-Policy header to mitigate XSS, data injection, and clickjacking attacks"
+                "recommendation": "Configure Content-Security-Policy header to mitigate XSS, data injection, and clickjacking attacks",
+                "remediation_cmd": "Add Content-Security-Policy header via: WEBSITES > Response Headers"
             })
 
     def _check_permissions_policy(self, name, cfg):
@@ -234,5 +245,6 @@ class ContentRulesChecker:
                 "resource": name,
                 "actual": "No Permissions-Policy header",
                 "expected": "Permissions-Policy restricting camera, microphone, geolocation",
-                "recommendation": "Add Permissions-Policy header to restrict browser features (camera, microphone, geolocation) for defense in depth"
+                "recommendation": "Add Permissions-Policy header to restrict browser features (camera, microphone, geolocation) for defense in depth",
+                "remediation_cmd": "Add Permissions-Policy header via: WEBSITES > Response Headers"
             })

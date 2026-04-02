@@ -47,7 +47,8 @@ class LicenseCapacityChecker:
                     "resource": "License",
                     "actual": status,
                     "expected": "Active, valid license",
-                    "recommendation": "Renew the WAF license immediately — expired licenses may disable security features and leave applications unprotected"
+                    "recommendation": "Renew the WAF license immediately — expired licenses may disable security features and leave applications unprotected",
+                    "remediation_cmd": "Renew license via Barracuda Cloud Control portal or contact Barracuda support"
                 })
             elif isinstance(status, str) and status.lower() == "trial":
                 self.findings.append({
@@ -58,7 +59,8 @@ class LicenseCapacityChecker:
                     "resource": "License",
                     "actual": "Trial license active",
                     "expected": "Production license",
-                    "recommendation": "Upgrade from trial to full production license before trial period expires to prevent service disruption"
+                    "recommendation": "Upgrade from trial to full production license before trial period expires to prevent service disruption",
+                    "remediation_cmd": "Upgrade to production license via Barracuda Cloud Control portal"
                 })
             expiry = license_info.get("expiry", license_info.get("expiry-date", license_info.get("valid-until", "")))
             if expiry:
@@ -70,7 +72,8 @@ class LicenseCapacityChecker:
                     "resource": "License",
                     "actual": f"License expires: {expiry}",
                     "expected": "Monitor renewal timeline",
-                    "recommendation": "Plan for license renewal before expiry to avoid protection gaps"
+                    "recommendation": "Plan for license renewal before expiry to avoid protection gaps",
+                    "remediation_cmd": "Monitor renewal timeline via Barracuda Cloud Control portal"
                 })
         elif not license_info:
             self.findings.append({
@@ -81,7 +84,8 @@ class LicenseCapacityChecker:
                 "resource": "License",
                 "actual": "License status unavailable",
                 "expected": "Active license with valid subscription",
-                "recommendation": "Verify license status in the WAF management console"
+                "recommendation": "Verify license status in the WAF management console",
+                "remediation_cmd": "Renew license via Barracuda Cloud Control portal or contact Barracuda support"
             })
 
     def _check_throughput_capacity(self, cfg, services):
@@ -105,7 +109,8 @@ class LicenseCapacityChecker:
                         "resource": "Throughput",
                         "actual": f"{curr_t:.0f} / {max_t:.0f} Mbps ({utilization:.0f}%)",
                         "expected": "< 80% utilization for headroom",
-                        "recommendation": "Throughput approaching licensed capacity — consider upgrading the WAF model or license tier to handle traffic spikes"
+                        "recommendation": "Throughput approaching licensed capacity — consider upgrading the WAF model or license tier to handle traffic spikes",
+                        "remediation_cmd": "Upgrade WAF model or license tier via Barracuda sales"
                     })
 
     def _check_feature_modules(self, cfg):
@@ -128,7 +133,8 @@ class LicenseCapacityChecker:
                         "resource": label,
                         "actual": f"{label}: {val or 'not licensed'}",
                         "expected": f"{label} licensed and active",
-                        "recommendation": f"Consider licensing {label} to enhance WAF security capabilities"
+                        "recommendation": f"Consider licensing {label} to enhance WAF security capabilities",
+                        "remediation_cmd": "License additional features via Barracuda Cloud Control portal"
                     })
 
     def _check_service_count(self, cfg, services):
@@ -151,7 +157,8 @@ class LicenseCapacityChecker:
                         "resource": "Service Capacity",
                         "actual": f"{active_count} of {max_svc} services ({utilization:.0f}%)",
                         "expected": "< 80% of licensed service limit",
-                        "recommendation": "Service count is approaching the license limit — plan for license upgrade or consolidate services"
+                        "recommendation": "Service count is approaching the license limit — plan for license upgrade or consolidate services",
+                        "remediation_cmd": "Upgrade license tier to increase service limit"
                     })
 
     def _check_advanced_threat_protection(self, cfg):
@@ -167,7 +174,8 @@ class LicenseCapacityChecker:
                     "resource": "ATP",
                     "actual": "ATP disabled",
                     "expected": "ATP enabled for file upload scanning",
-                    "recommendation": "Enable Advanced Threat Protection to scan file uploads in a cloud sandbox for zero-day malware detection"
+                    "recommendation": "Enable Advanced Threat Protection to scan file uploads in a cloud sandbox for zero-day malware detection",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/advanced-threat-protection -H 'Authorization: Basic <token>' -d \"{'status':'enabled'}'''"
                 })
         elif not atp:
             self.findings.append({
@@ -178,7 +186,8 @@ class LicenseCapacityChecker:
                 "resource": "ATP",
                 "actual": "ATP not configured",
                 "expected": "ATP enabled for file upload sandboxing",
-                "recommendation": "Configure Advanced Threat Protection if licensed — it provides cloud-based sandboxing for uploaded files"
+                "recommendation": "Configure Advanced Threat Protection if licensed — it provides cloud-based sandboxing for uploaded files",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/advanced-threat-protection -H 'Authorization: Basic <token>' -d \"{'status':'enabled'}'''"
             })
 
     def _check_vulnerability_scanner(self, cfg):
@@ -194,7 +203,8 @@ class LicenseCapacityChecker:
                     "resource": "Vulnerability Scanner",
                     "actual": "Scanner disabled",
                     "expected": "Periodic vulnerability scanning",
-                    "recommendation": "Enable the built-in vulnerability scanner for periodic assessment of protected web applications"
+                    "recommendation": "Enable the built-in vulnerability scanner for periodic assessment of protected web applications",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/vulnerability-scanner -H 'Authorization: Basic <token>' -d \"{'status':'enabled'}'''"
                 })
 
     def _check_active_ddos_prevention(self, cfg):
@@ -210,7 +220,8 @@ class LicenseCapacityChecker:
                     "resource": "Active DDoS Prevention",
                     "actual": "Cloud DDoS prevention disabled",
                     "expected": "Active DDoS Prevention enabled if licensed",
-                    "recommendation": "Enable Active DDoS Prevention for cloud-based volumetric DDoS mitigation if included in your license"
+                    "recommendation": "Enable Active DDoS Prevention for cloud-based volumetric DDoS mitigation if included in your license",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/active-ddos-prevention -H 'Authorization: Basic <token>' -d \"{'status':'enabled'}'''"
                 })
 
     def _check_ssl_offloading_capacity(self, cfg, services):
@@ -234,5 +245,6 @@ class LicenseCapacityChecker:
                         "resource": "SSL Performance",
                         "actual": f"{curr_t} / {max_t} SSL TPS ({utilization:.0f}%)",
                         "expected": "< 80% SSL TPS utilization",
-                        "recommendation": "SSL transactions per second approaching hardware limit — consider upgrading WAF model for higher SSL throughput"
+                        "recommendation": "SSL transactions per second approaching hardware limit — consider upgrading WAF model for higher SSL throughput",
+                        "remediation_cmd": "Upgrade WAF model for higher SSL throughput capacity"
                     })

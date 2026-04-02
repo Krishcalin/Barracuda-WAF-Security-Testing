@@ -44,7 +44,8 @@ class AccessControlChecker:
                 "resource": name,
                 "actual": "No ACL rules",
                 "expected": "ACL rules restricting access by IP/network",
-                "recommendation": "Configure global ACL rules to restrict access to known IP ranges and block suspicious sources"
+                "recommendation": "Configure global ACL rules to restrict access to known IP ranges and block suspicious sources",
+                "remediation_cmd": ("curl -X POST https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/global-acls -H 'Authorization: Basic <token>' -d '{{'name':'deny-all','action':'deny','source-address':'0.0.0.0/0'}}'")
             })
             return
 
@@ -61,7 +62,8 @@ class AccessControlChecker:
                         "resource": name,
                         "actual": f"Allow all from {ip_range}",
                         "expected": "Specific IP ranges in allow rules",
-                        "recommendation": "Replace wildcard allow rules with specific trusted IP ranges"
+                        "recommendation": "Replace wildcard allow rules with specific trusted IP ranges",
+                        "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/global-acls/<RULE_NAME> -H 'Authorization: Basic <token>' -d '{{'source-address':'10.0.0.0/8'}}'")
                     })
 
     def _check_geo_blocking(self, name, cfg):
@@ -75,7 +77,8 @@ class AccessControlChecker:
                 "resource": name,
                 "actual": "No geo-blocking",
                 "expected": "Geo-blocking for high-risk countries",
-                "recommendation": "Configure geo-blocking to restrict access from countries where your application has no legitimate users"
+                "recommendation": "Configure geo-blocking to restrict access from countries where your application has no legitimate users",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + " -H 'Authorization: Basic <token>' -d '{{'geo-pool':'block-high-risk'}}'")
             })
 
     def _check_rate_limiting(self, name, rate, cfg):
@@ -90,7 +93,8 @@ class AccessControlChecker:
                     "resource": name,
                     "actual": "No rate limiting",
                     "expected": "Rate limiting enabled per client IP",
-                    "recommendation": "Configure rate limiting to prevent abuse, credential stuffing, and application-layer DoS attacks"
+                    "recommendation": "Configure rate limiting to prevent abuse, credential stuffing, and application-layer DoS attacks",
+                    "remediation_cmd": ("curl -X POST https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/rate-control -H 'Authorization: Basic <token>' -d '{{'name':'default-rate','max-requests-per-second':'100','action':'throttle'}}'")
                 })
             return
 
@@ -109,7 +113,8 @@ class AccessControlChecker:
                     "resource": name,
                     "actual": f"{max_req} requests/second",
                     "expected": "<= 1000 requests/second per client",
-                    "recommendation": "Lower the rate limit threshold to an appropriate level for your application's expected traffic"
+                    "recommendation": "Lower the rate limit threshold to an appropriate level for your application's expected traffic",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/rate-control/<RULE_NAME> -H 'Authorization: Basic <token>' -d '{{'max-requests-per-second':'100'}}'")
                 })
 
     def _check_brute_force(self, name, cfg):
@@ -125,7 +130,8 @@ class AccessControlChecker:
                     "resource": name,
                     "actual": "Disabled",
                     "expected": "Enabled",
-                    "recommendation": "Enable brute-force prevention to protect login forms from credential stuffing attacks"
+                    "recommendation": "Enable brute-force prevention to protect login forms from credential stuffing attacks",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/brute-force-prevention -H 'Authorization: Basic <token>' -d '{{'status':'enabled','max-attempts':'5'}}'")
                 })
             max_attempts = int(bf.get("max-attempts", bf.get("max-login-attempts", 0)))
             if max_attempts > 10:
@@ -137,7 +143,8 @@ class AccessControlChecker:
                     "resource": name,
                     "actual": f"{max_attempts} attempts before lockout",
                     "expected": "<= 10 attempts",
-                    "recommendation": "Reduce max login attempts to 5-10 before triggering account lockout or CAPTCHA"
+                    "recommendation": "Reduce max login attempts to 5-10 before triggering account lockout or CAPTCHA",
+                    "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/brute-force-prevention -H 'Authorization: Basic <token>' -d '{{'max-attempts':'5'}}'")
                 })
         elif not bf:
             self.findings.append({
@@ -148,7 +155,8 @@ class AccessControlChecker:
                 "resource": name,
                 "actual": "Not configured",
                 "expected": "Brute-force prevention enabled",
-                "recommendation": "Configure brute-force prevention with lockout thresholds and penalty periods"
+                "recommendation": "Configure brute-force prevention with lockout thresholds and penalty periods",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/brute-force-prevention -H 'Authorization: Basic <token>' -d '{{'status':'enabled','max-attempts':'5'}}'")
             })
 
     def _check_url_acls(self, name, cfg):
@@ -167,7 +175,8 @@ class AccessControlChecker:
                             "resource": name,
                             "actual": f"Allow all on {url_pattern}",
                             "expected": "Specific URL path restrictions",
-                            "recommendation": "Restrict URL ACLs to specific paths rather than using wildcard allow rules"
+                            "recommendation": "Restrict URL ACLs to specific paths rather than using wildcard allow rules",
+                            "remediation_cmd": "Replace wildcard URL ACL with specific path rules via WAF management console"
                         })
 
     def _check_ip_reputation(self, name, cfg):
@@ -181,7 +190,8 @@ class AccessControlChecker:
                 "resource": name,
                 "actual": "IP reputation disabled",
                 "expected": "IP reputation filtering enabled",
-                "recommendation": "Enable IP reputation filtering to block known malicious IPs, botnets, and Tor exit nodes"
+                "recommendation": "Enable IP reputation filtering to block known malicious IPs, botnets, and Tor exit nodes",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + " -H 'Authorization: Basic <token>' -d '{{'ip-reputation':'on'}}'")
             })
 
     def _check_trusted_hosts(self, name, cfg):
@@ -195,7 +205,8 @@ class AccessControlChecker:
                 "resource": name,
                 "actual": "No trusted hosts defined",
                 "expected": "Trusted hosts group for management access",
-                "recommendation": "Define trusted hosts groups to whitelist management and monitoring IP addresses"
+                "recommendation": "Define trusted hosts groups to whitelist management and monitoring IP addresses",
+                "remediation_cmd": "Configure trusted hosts group via WAF management console or REST API"
             })
 
         xff = cfg.get("x-forwarded-for", cfg.get("trusted-proxy", ""))
@@ -208,5 +219,6 @@ class AccessControlChecker:
                 "resource": name,
                 "actual": "XFF header not trusted",
                 "expected": "XFF trusted from known proxy IPs",
-                "recommendation": "Configure trusted proxy IPs for X-Forwarded-For header processing if behind a load balancer or CDN"
+                "recommendation": "Configure trusted proxy IPs for X-Forwarded-For header processing if behind a load balancer or CDN",
+                "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + " -H 'Authorization: Basic <token>' -d '{{'x-forwarded-for':'on'}}'")
             })

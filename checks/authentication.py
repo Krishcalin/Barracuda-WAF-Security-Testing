@@ -47,7 +47,8 @@ class AuthenticationChecker:
                         "resource": username,
                         "actual": f"Default account '{username}' exists",
                         "expected": "Renamed or disabled default accounts",
-                        "recommendation": "Rename or disable default admin accounts and create named individual admin accounts"
+                        "recommendation": "Rename or disable default admin accounts and create named individual admin accounts",
+                        "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'username':'<NEW_ADMIN>'}'''"
                     })
 
     def _check_password_policy(self, cfg):
@@ -63,7 +64,8 @@ class AuthenticationChecker:
                     "resource": "Password Policy",
                     "actual": f"{min_len} characters" if min_len else "Not configured",
                     "expected": ">= 12 characters",
-                    "recommendation": "Set minimum password length to 12 or more characters"
+                    "recommendation": "Set minimum password length to 12 or more characters",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/password-policy -H 'Authorization: Basic <token>' -d \"{'min-length':'12'}'''"
                 })
             complexity = pwd_policy.get("complexity", pwd_policy.get("require-complexity", ""))
             if isinstance(complexity, str) and complexity.lower() in ("off", "no", "disabled", ""):
@@ -75,7 +77,8 @@ class AuthenticationChecker:
                     "resource": "Password Policy",
                     "actual": "Complexity not required",
                     "expected": "Uppercase, lowercase, numbers, special characters required",
-                    "recommendation": "Enable password complexity requirements (uppercase, lowercase, digits, special characters)"
+                    "recommendation": "Enable password complexity requirements (uppercase, lowercase, digits, special characters)",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/password-policy -H 'Authorization: Basic <token>' -d \"{'complexity':'on'}'''"
                 })
             max_age = int(pwd_policy.get("max-age", pwd_policy.get("expiry-days", 0)))
             if max_age == 0 or max_age > 90:
@@ -87,7 +90,8 @@ class AuthenticationChecker:
                     "resource": "Password Policy",
                     "actual": f"{max_age} days" if max_age else "No expiry",
                     "expected": "<= 90 days",
-                    "recommendation": "Set password maximum age to 90 days or less"
+                    "recommendation": "Set password maximum age to 90 days or less",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/password-policy -H 'Authorization: Basic <token>' -d \"{'max-age':'90'}'''"
                 })
             history = int(pwd_policy.get("history", pwd_policy.get("password-history", 0)))
             if history < 5:
@@ -99,7 +103,8 @@ class AuthenticationChecker:
                     "resource": "Password Policy",
                     "actual": f"{history} passwords remembered" if history else "No history",
                     "expected": ">= 5 passwords remembered",
-                    "recommendation": "Set password history to remember at least 5 previous passwords to prevent reuse"
+                    "recommendation": "Set password history to remember at least 5 previous passwords to prevent reuse",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/account-lockout -H 'Authorization: Basic <token>' -d \"{'status':'enabled','max-attempts':'5'}'''"
                 })
         else:
             self.findings.append({
@@ -110,7 +115,8 @@ class AuthenticationChecker:
                 "resource": "Password Policy",
                 "actual": "No password policy",
                 "expected": "Strong password policy enforced",
-                "recommendation": "Configure password policy with minimum length (12+), complexity, expiry (90 days), and history"
+                "recommendation": "Configure password policy with minimum length (12+), complexity, expiry (90 days), and history",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/password-policy -H 'Authorization: Basic <token>' -d \"{'min-length':'12'}'''"
             })
 
     def _check_mfa(self, cfg):
@@ -126,7 +132,8 @@ class AuthenticationChecker:
                     "resource": "Admin MFA",
                     "actual": "MFA disabled",
                     "expected": "MFA enabled for all admin accounts",
-                    "recommendation": "Enable MFA (TOTP, RADIUS, or certificate) for all administrative access"
+                    "recommendation": "Enable MFA (TOTP, RADIUS, or certificate) for all administrative access",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/mfa -H 'Authorization: Basic <token>' -d \"{'status':'enabled'}'''"
                 })
         elif not mfa:
             self.findings.append({
@@ -137,7 +144,8 @@ class AuthenticationChecker:
                 "resource": "Admin MFA",
                 "actual": "MFA not configured",
                 "expected": "MFA enabled for all admin accounts",
-                "recommendation": "Configure and enforce MFA for all administrative access to the WAF management interface"
+                "recommendation": "Configure and enforce MFA for all administrative access to the WAF management interface",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/mfa -H 'Authorization: Basic <token>' -d \"{'status':'enabled'}'''"
             })
 
     def _check_session_timeout(self, cfg):
@@ -155,7 +163,8 @@ class AuthenticationChecker:
                 "resource": "Session Management",
                 "actual": f"{timeout} seconds" if timeout else "No timeout",
                 "expected": "<= 900 seconds (15 minutes)",
-                "recommendation": "Set admin session idle timeout to 15 minutes or less"
+                "recommendation": "Set admin session idle timeout to 15 minutes or less",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'session-timeout':'900'}'''"
             })
 
     def _check_login_banner(self, cfg):
@@ -169,7 +178,8 @@ class AuthenticationChecker:
                 "resource": "Login Banner",
                 "actual": "No banner",
                 "expected": "Legal warning banner displayed at login",
-                "recommendation": "Configure a login banner with authorized-use-only warning for legal compliance"
+                "recommendation": "Configure a login banner with authorized-use-only warning for legal compliance",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'login-banner':'Authorized use only.'}'''"
             })
 
     def _check_admin_access_restriction(self, cfg):
@@ -183,7 +193,8 @@ class AuthenticationChecker:
                 "resource": "Management Access",
                 "actual": "Management accessible from any IP",
                 "expected": "Management restricted to specific admin IPs/subnets",
-                "recommendation": "Restrict management interface access to specific trusted IP addresses or subnets"
+                "recommendation": "Restrict management interface access to specific trusted IP addresses or subnets",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'management-access-control':'10.0.0.0/24'}'''"
             })
 
     def _check_ldap_security(self, cfg):
@@ -199,7 +210,8 @@ class AuthenticationChecker:
                     "resource": "LDAP Integration",
                     "actual": "LDAP without SSL/TLS",
                     "expected": "LDAPS (port 636) or STARTTLS",
-                    "recommendation": "Enable LDAPS or STARTTLS for LDAP connections to protect credentials in transit"
+                    "recommendation": "Enable LDAPS or STARTTLS for LDAP connections to protect credentials in transit",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/ldap -H 'Authorization: Basic <token>' -d \"{'use-ssl':'on'}'''"
                 })
 
     def _check_saml_config(self, cfg):
@@ -215,7 +227,8 @@ class AuthenticationChecker:
                     "resource": "SAML SSO",
                     "actual": "Unsigned assertions accepted",
                     "expected": "Signed SAML assertions required",
-                    "recommendation": "Require signed SAML assertions to prevent authentication bypass via forged assertions"
+                    "recommendation": "Require signed SAML assertions to prevent authentication bypass via forged assertions",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/saml -H 'Authorization: Basic <token>' -d \"{'signed-assertions':'on'}'''"
                 })
 
     def _check_role_based_access(self, cfg):
@@ -229,7 +242,8 @@ class AuthenticationChecker:
                 "resource": "RBAC",
                 "actual": f"{len(rbac)} role(s) defined",
                 "expected": "Multiple roles with least-privilege assignments",
-                "recommendation": "Define granular admin roles (full admin, read-only, policy editor) following least-privilege principle"
+                "recommendation": "Define granular admin roles (full admin, read-only, policy editor) following least-privilege principle",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'audit-log':'on'}'''"
             })
 
     def _check_api_access(self, cfg):
@@ -247,7 +261,8 @@ class AuthenticationChecker:
                         "resource": "REST API",
                         "actual": "API accessible from any IP",
                         "expected": "API restricted to management IPs",
-                        "recommendation": "Restrict REST API access to specific trusted IP addresses"
+                        "recommendation": "Restrict REST API access to specific trusted IP addresses",
+                        "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'management-access-control':'10.0.0.0/24'}'''"
                     })
 
     def _check_account_lockout(self, cfg):
@@ -263,7 +278,8 @@ class AuthenticationChecker:
                     "resource": "Account Lockout",
                     "actual": "Lockout disabled",
                     "expected": "Lockout after 5 failed attempts",
-                    "recommendation": "Enable account lockout after 5 failed login attempts with a minimum 30-minute lockout period"
+                    "recommendation": "Enable account lockout after 5 failed login attempts with a minimum 30-minute lockout period",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/account-lockout -H 'Authorization: Basic <token>' -d \"{'status':'enabled','max-attempts':'5'}'''"
                 })
 
     def _check_audit_logging(self, cfg):
@@ -277,5 +293,6 @@ class AuthenticationChecker:
                 "resource": "Audit Log",
                 "actual": "Audit logging disabled",
                 "expected": "Full admin action audit logging",
-                "recommendation": "Enable audit logging for all administrative actions for accountability and forensics"
+                "recommendation": "Enable audit logging for all administrative actions for accountability and forensics",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin -H 'Authorization: Basic <token>' -d \"{'audit-log':'on'}'''"
             })

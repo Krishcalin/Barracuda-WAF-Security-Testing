@@ -47,7 +47,8 @@ class FirmwareUpdatesChecker:
                 "resource": "System",
                 "actual": "Version unknown",
                 "expected": f"Firmware >= {MINIMUM_RECOMMENDED_VERSION}",
-                "recommendation": "Verify firmware version manually and update to the latest stable release"
+                "recommendation": "Verify firmware version manually and update to the latest stable release",
+                "remediation_cmd": "Download latest firmware from Barracuda Cloud Control: ADVANCED > Firmware Update"
             })
             return
 
@@ -64,7 +65,8 @@ class FirmwareUpdatesChecker:
                     "resource": "System",
                     "actual": f"Version {version_str}",
                     "expected": f">= {MINIMUM_RECOMMENDED_VERSION}",
-                    "recommendation": f"Upgrade firmware to version {MINIMUM_RECOMMENDED_VERSION} or later for latest security patches and features"
+                    "recommendation": f"Upgrade firmware to version {MINIMUM_RECOMMENDED_VERSION} or later for latest security patches and features",
+                    "remediation_cmd": "Download latest firmware from Barracuda Cloud Control: ADVANCED > Firmware Update"
                 })
         except (ValueError, IndexError):
             self.findings.append({
@@ -75,7 +77,8 @@ class FirmwareUpdatesChecker:
                 "resource": "System",
                 "actual": version_str,
                 "expected": "Standard version format",
-                "recommendation": "Verify the firmware version and ensure it is supported and up to date"
+                "recommendation": "Verify the firmware version and ensure it is supported and up to date",
+                "remediation_cmd": "Download latest firmware from Barracuda Cloud Control: ADVANCED > Firmware Update"
             })
 
     def _check_eol_status(self, cfg):
@@ -92,7 +95,8 @@ class FirmwareUpdatesChecker:
                     "resource": "System",
                     "actual": f"Version {version} (EOL family {family})",
                     "expected": "Supported firmware version",
-                    "recommendation": f"Upgrade from EOL firmware {family} immediately — no security patches are available for EOL versions"
+                    "recommendation": f"Upgrade from EOL firmware {family} immediately — no security patches are available for EOL versions",
+                    "remediation_cmd": "Upgrade from EOL firmware immediately via: ADVANCED > Firmware Update"
                 })
                 break
 
@@ -110,7 +114,8 @@ class FirmwareUpdatesChecker:
                     "resource": "Subscription",
                     "actual": status or "Inactive",
                     "expected": "Active subscription",
-                    "recommendation": "Renew the Energize Updates subscription to receive firmware updates, attack definitions, and virus signatures"
+                    "recommendation": "Renew the Energize Updates subscription to receive firmware updates, attack definitions, and virus signatures",
+                    "remediation_cmd": "Renew Energize Updates subscription via Barracuda Cloud Control portal"
                 })
             expiry = sub.get("expiry-date", sub.get("renewal-date", ""))
             if expiry:
@@ -122,7 +127,8 @@ class FirmwareUpdatesChecker:
                     "resource": "Subscription",
                     "actual": f"Expires: {expiry}",
                     "expected": "Active subscription",
-                    "recommendation": "Monitor subscription renewal date and plan for timely renewal"
+                    "recommendation": "Monitor subscription renewal date and plan for timely renewal",
+                    "remediation_cmd": "Renew Energize Updates subscription via Barracuda Cloud Control portal"
                 })
         elif isinstance(sub, str) and sub.lower() in ("expired", "inactive", "no", ""):
             self.findings.append({
@@ -133,7 +139,8 @@ class FirmwareUpdatesChecker:
                 "resource": "Subscription",
                 "actual": sub or "Not active",
                 "expected": "Active subscription",
-                "recommendation": "Activate or renew Energize Updates for continued security definition updates"
+                "recommendation": "Activate or renew Energize Updates for continued security definition updates",
+                "remediation_cmd": "Renew Energize Updates subscription via Barracuda Cloud Control portal"
             })
 
     def _check_auto_updates(self, cfg):
@@ -150,7 +157,8 @@ class FirmwareUpdatesChecker:
                     "resource": "Auto-Update",
                     "actual": "Auto-update disabled",
                     "expected": "Automatic updates enabled",
-                    "recommendation": "Enable automatic updates for attack definitions and virus signatures to stay protected against new threats"
+                    "recommendation": "Enable automatic updates for attack definitions and virus signatures to stay protected against new threats",
+                    "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/system -H 'Authorization: Basic <token>' -d \"{'auto-update':'enabled'}'''"
                 })
         elif isinstance(auto_update, str) and auto_update.lower() in ("off", "no", "disabled", ""):
             self.findings.append({
@@ -161,7 +169,8 @@ class FirmwareUpdatesChecker:
                 "resource": "Auto-Update",
                 "actual": "Disabled",
                 "expected": "Enabled",
-                "recommendation": "Enable automatic security definition updates"
+                "recommendation": "Enable automatic security definition updates",
+                "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/system -H 'Authorization: Basic <token>' -d \"{'auto-update':'enabled'}'''"
             })
 
     def _check_attack_definitions(self, cfg):
@@ -178,5 +187,6 @@ class FirmwareUpdatesChecker:
                     "resource": "Attack Definitions",
                     "actual": f"Version: {version}, Updated: {last_update}",
                     "expected": "Definitions updated within last 7 days",
-                    "recommendation": "Verify attack definitions are being updated regularly — outdated definitions leave new threats undetected"
+                    "recommendation": "Verify attack definitions are being updated regularly — outdated definitions leave new threats undetected",
+                    "remediation_cmd": "Verify definitions at: ADVANCED > Energize Updates > Attack Definitions"
                 })

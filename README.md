@@ -62,7 +62,36 @@ Connects to the **Barracuda WAF REST API** (read-only) and audits **180+ securit
 
 - Python 3.9+
 - Network access to Barracuda WAF REST API (default port 8443)
-- Admin credentials with read access
+- Admin credentials with read access (see below)
+
+### Prerequisites & Permissions
+
+The scanner requires **admin-level read access** to the Barracuda WAF REST API to perform a comprehensive assessment. Without admin privileges, approximately 60–70% of checks will return incomplete results.
+
+**API endpoints requiring admin access:**
+
+| Endpoint | Check Categories | Impact Without Access |
+|----------|-----------------|----------------------|
+| `/admin` | Authentication, Network | Password policy, MFA, SNMP, SSH/Telnet, session timeout — all skipped |
+| `/system` | Firmware, CVE, License | Firmware version, EOL, subscriptions, CVE matching — all skipped |
+| `/cluster` | Network, Backup | HA configuration and config sync checks skipped |
+| `/backup` | Backup & Recovery | Backup schedule, encryption, offsite DR checks skipped |
+| `/syslog` | Logging & Monitoring | Syslog, WAF logging, audit log, SIEM integration checks skipped |
+| `/security-policies` | WAF Policies, API Security | Full policy details including parameter protection, cookie security, JSON/XML rules |
+| `/services` | Services, SSL, DDoS, Bot | Virtual services, backend SSL, health checks, bot protection |
+| `/signed-certificate` | SSL/TLS | Certificate expiry, key size, signature algorithm |
+
+**Recommended setup for production scanning:**
+
+1. **Create a dedicated scan account** — Do not use the primary admin account. Create a separate read-only admin user specifically for automated scanning
+2. **Restrict by source IP** — Limit the scan account's management access to the scanner host's IP address only
+3. **Enable MFA** — Apply multi-factor authentication to the scan account where supported
+4. **Use strong credentials** — Minimum 16-character password with complexity requirements
+5. **Rotate after assessment** — Change the scan account password after each assessment cycle
+6. **Audit trail** — Ensure admin audit logging is enabled to track all scanner API calls
+7. **Read-only operation** — The scanner only performs GET requests (plus POST for login and DELETE for logout). No WAF configuration is ever modified
+
+> **Note:** If your Barracuda WAF firmware supports Role-Based Access Control (RBAC), a read-only admin role is sufficient for all scanner checks.
 
 ### Installation
 

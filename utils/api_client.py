@@ -26,6 +26,12 @@ class BarracudaWafClient:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             self.session.verify = False
 
+    @staticmethod
+    def _sanitize_header(value: str) -> str:
+        """Strip whitespace, \\r, \\n from header values to prevent
+        'Invalid leading whitespace / return character in header value' errors."""
+        return value.replace("\r", "").replace("\n", "").strip()
+
     def login(self):
         """Authenticate and obtain API token."""
         url = f"{self.base_url}/login"
@@ -36,10 +42,13 @@ class BarracudaWafClient:
                                      verify=self.verify_ssl, timeout=self.timeout)
             resp.raise_for_status()
             data = resp.json()
-            self.token = data.get("token") or data.get("Token")
+            raw_token = data.get("token") or data.get("Token") or ""
+            self.token = self._sanitize_header(raw_token)
             if not self.token:
                 raise AuthenticationError(f"No token in response: {data}")
-            self.session.headers.update({"Authorization": f"Basic {self.token}"})
+            self.session.headers.update({
+                "Authorization": self._sanitize_header(f"Basic {self.token}")
+            })
             logger.info("Authenticated to Barracuda WAF at %s", self.base_url)
             return True
         except requests.exceptions.ConnectionError as e:
@@ -51,7 +60,8 @@ class BarracudaWafClient:
         """Invalidate session token."""
         if self.token:
             try:
-                self.session.delete(f"{self.base_url}/login/{self.token}",
+                safe_token = self._sanitize_header(self.token)
+                self.session.delete(f"{self.base_url}/login/{safe_token}",
                                     verify=self.verify_ssl, timeout=self.timeout)
             except Exception:
                 pass

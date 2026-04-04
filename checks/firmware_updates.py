@@ -1,6 +1,7 @@
 """Firmware and update security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class FirmwareUpdatesChecker:
     def run_all(self):
         logger.info("Running firmware and update checks...")
         sys_info = self.api.get_system_info()
-        cfg = sys_info.get("data", sys_info) if isinstance(sys_info, dict) else {}
+        cfg = extract_config(sys_info, fallback={}) if isinstance(sys_info, dict) else {}
 
         self._check_firmware_version(cfg)
         self._check_eol_status(cfg)

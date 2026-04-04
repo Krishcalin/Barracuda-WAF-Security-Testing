@@ -1,6 +1,7 @@
 """DDoS protection security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class DdosProtectionChecker:
         for svc in services:
             name = svc.get("name", svc.get("id", "unknown"))
             detail = self.api.get_service_detail(name)
-            cfg = detail.get("data", detail) if isinstance(detail, dict) else svc
+            cfg = extract_config(detail, fallback=svc) if isinstance(detail, dict) else svc
 
             self._check_slow_client(name, cfg)
             self._check_connection_limits(name, cfg)
@@ -49,7 +50,7 @@ class DdosProtectionChecker:
                     "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/slow-client-attack -H 'Authorization: Basic <token>' -d \"{'status':'enabled'}'''")
                 })
             else:
-                timeout = int(slow.get("data-transfer-rate", slow.get("min-data-rate", 0)))
+                timeout = safe_int(slow.get("data-transfer-rate", slow.get("min-data-rate", 0)))
                 if timeout == 0:
                     self.findings.append({
                         "id": "DDOS-002",
@@ -78,7 +79,7 @@ class DdosProtectionChecker:
     def _check_connection_limits(self, name, cfg):
         conn = cfg.get("connection-limits", cfg.get("max-connections", {}))
         if isinstance(conn, dict):
-            max_client = int(conn.get("max-client-connections", conn.get("per-client-limit", 0)))
+            max_client = safe_int(conn.get("max-client-connections", conn.get("per-client-limit", 0)))
             if max_client == 0 or max_client > 5000:
                 self.findings.append({
                     "id": "DDOS-003",
@@ -91,7 +92,7 @@ class DdosProtectionChecker:
                     "recommendation": "Set per-client connection limits to prevent single-source connection exhaustion attacks",
                     "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/connection-limits -H 'Authorization: Basic <token>' -d \"{'max-client-connections':'500'}'''")
                 })
-            max_total = int(conn.get("max-total-connections", conn.get("total-limit", 0)))
+            max_total = safe_int(conn.get("max-total-connections", conn.get("total-limit", 0)))
             if max_total == 0:
                 self.findings.append({
                     "id": "DDOS-004",

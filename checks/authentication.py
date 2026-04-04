@@ -1,6 +1,7 @@
 """Authentication and administrative access security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class AuthenticationChecker:
     def run_all(self):
         logger.info("Running authentication checks...")
         admin_cfg = self.api.get_admin_config()
-        cfg = admin_cfg.get("data", admin_cfg) if isinstance(admin_cfg, dict) else {}
+        cfg = extract_config(admin_cfg) if isinstance(admin_cfg, dict) else {}
 
         self._check_default_credentials(cfg)
         self._check_password_policy(cfg)
@@ -54,7 +55,7 @@ class AuthenticationChecker:
     def _check_password_policy(self, cfg):
         pwd_policy = cfg.get("password-policy", cfg.get("password-complexity", {}))
         if isinstance(pwd_policy, dict):
-            min_len = int(pwd_policy.get("min-length", pwd_policy.get("minimum-length", 0)))
+            min_len = safe_int(pwd_policy.get("min-length", pwd_policy.get("minimum-length", 0)))
             if min_len < 12:
                 self.findings.append({
                     "id": "AUTH-002",
@@ -80,7 +81,7 @@ class AuthenticationChecker:
                     "recommendation": "Enable password complexity requirements (uppercase, lowercase, digits, special characters)",
                     "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/password-policy -H 'Authorization: Basic <token>' -d \"{'complexity':'on'}'''"
                 })
-            max_age = int(pwd_policy.get("max-age", pwd_policy.get("expiry-days", 0)))
+            max_age = safe_int(pwd_policy.get("max-age", pwd_policy.get("expiry-days", 0)))
             if max_age == 0 or max_age > 90:
                 self.findings.append({
                     "id": "AUTH-004",
@@ -93,7 +94,7 @@ class AuthenticationChecker:
                     "recommendation": "Set password maximum age to 90 days or less",
                     "remediation_cmd": "curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/admin/password-policy -H 'Authorization: Basic <token>' -d \"{'max-age':'90'}'''"
                 })
-            history = int(pwd_policy.get("history", pwd_policy.get("password-history", 0)))
+            history = safe_int(pwd_policy.get("history", pwd_policy.get("password-history", 0)))
             if history < 5:
                 self.findings.append({
                     "id": "AUTH-011",

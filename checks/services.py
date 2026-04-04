@@ -1,6 +1,7 @@
 """Virtual service configuration security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class ServicesChecker:
         for svc in services:
             name = svc.get("name", svc.get("id", "unknown"))
             detail = self.api.get_service_detail(name)
-            cfg = detail.get("data", detail) if isinstance(detail, dict) else svc
+            cfg = extract_config(detail, fallback=svc)
 
             self._check_backend_ssl(name, cfg)
             self._check_health_checks(name, cfg)

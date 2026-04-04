@@ -1,6 +1,7 @@
 """WAF-specific CVE checks against firmware version."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 import re
 
 logger = logging.getLogger(__name__)
@@ -156,7 +157,7 @@ class CveChecker:
     def run_all(self):
         logger.info("Running CVE checks against firmware version...")
         sys_info = self.api.get_system_info()
-        cfg = sys_info.get("data", sys_info) if isinstance(sys_info, dict) else {}
+        cfg = extract_config(sys_info, fallback={}) if isinstance(sys_info, dict) else {}
 
         version = cfg.get("firmware-version", cfg.get("version", cfg.get("system-version", "")))
         model = cfg.get("model", cfg.get("product-model", ""))

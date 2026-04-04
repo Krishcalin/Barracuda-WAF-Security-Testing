@@ -1,6 +1,7 @@
 """Backup and disaster recovery configuration checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -16,16 +17,16 @@ class BackupRecoveryChecker:
     def run_all(self):
         logger.info("Running backup and recovery checks...")
         sys_info = self.api.get_system_info()
-        cfg = sys_info.get("data", sys_info) if isinstance(sys_info, dict) else {}
+        cfg = extract_config(sys_info, fallback={}) if isinstance(sys_info, dict) else {}
         admin_cfg = self.api.get_admin_config()
-        admin = admin_cfg.get("data", admin_cfg) if isinstance(admin_cfg, dict) else {}
+        admin = extract_config(admin_cfg, fallback={}) if isinstance(admin_cfg, dict) else {}
         backup_cfg = self.api.get_backup_config()
-        backup_data = backup_cfg.get("data", backup_cfg) if isinstance(backup_cfg, dict) else {}
+        backup_data = extract_config(backup_cfg, fallback={}) if isinstance(backup_cfg, dict) else {}
         # Merge backup data into cfg for lookup
         if backup_data and "backup" not in cfg:
             cfg["backup"] = backup_data
         cluster = self.api.get_cluster_config()
-        cluster_cfg = cluster.get("data", cluster) if isinstance(cluster, dict) else {}
+        cluster_cfg = extract_config(cluster, fallback={}) if isinstance(cluster, dict) else {}
 
         self._check_scheduled_backup(cfg, admin)
         self._check_backup_encryption(cfg, admin)

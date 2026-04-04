@@ -1,6 +1,7 @@
 """Bot protection security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class BotProtectionChecker:
         for svc in services:
             name = svc.get("name", svc.get("id", "unknown"))
             detail = self.api.get_service_detail(name)
-            cfg = detail.get("data", detail) if isinstance(detail, dict) else svc
+            cfg = extract_config(detail, fallback=svc) if isinstance(detail, dict) else svc
 
             self._check_bot_mitigation(name, cfg)
             self._check_captcha(name, cfg)

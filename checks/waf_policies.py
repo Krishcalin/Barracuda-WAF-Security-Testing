@@ -1,6 +1,7 @@
 """WAF policy configuration security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, is_disabled, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -23,17 +24,18 @@ class WafPoliciesChecker:
                 "severity": "CRITICAL",
                 "category": "WAF Policy",
                 "resource": "Global",
-                "actual": "No policies configured",
+                "actual": "No policies configured or API returned empty response",
                 "expected": "At least one security policy active",
-                "recommendation": "Create and assign WAF security policies to all virtual services",
+                "recommendation": "Create and assign WAF security policies to all virtual services. If policies exist, check scanner authentication and permissions.",
                 "remediation_cmd": "Create a security policy via WAF management console: SECURITY POLICIES > Create Policy"
             })
             return self.findings
 
         for policy in policies:
             name = policy.get("name", policy.get("id", "unknown"))
-            detail = self.api.get_security_policy(name) if isinstance(name, str) else policy
-            cfg = detail.get("data", detail) if isinstance(detail, dict) else policy
+            detail = self.api.get_security_policy(name) if isinstance(name, str) and name != "unknown" else {}
+            cfg = extract_config(detail, fallback=policy)
+            logger.debug("Policy '%s' config keys: %s", name, list(cfg.keys()) if isinstance(cfg, dict) else "N/A")
             self._check_attack_action(name, cfg)
             self._check_cloaking(name, cfg)
             self._check_request_limits(name, cfg)
@@ -81,9 +83,9 @@ class WafPoliciesChecker:
             })
 
     def _check_request_limits(self, name, cfg):
-        limits = cfg.get("request-limits", cfg.get("web-firewall-policy", {}).get("request-limits", {}))
+        limits = deep_get(cfg, "request-limits", ("web-firewall-policy", "request-limits"), default={})
         if isinstance(limits, dict):
-            max_url = int(limits.get("max-url-length", 0))
+            max_url = safe_int(limits.get("max-url-length", 0))
             if max_url == 0 or max_url > 4096:
                 self.findings.append({
                     "id": "WAF-POL-004",
@@ -96,7 +98,7 @@ class WafPoliciesChecker:
                     "recommendation": "Set max URL length to 4096 or less to prevent buffer overflow and path traversal attacks",
                     "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/request-limits -H 'Authorization: Basic <token>' -d \"{'max-url-length':'4096'}'''")
                 })
-            max_header = int(limits.get("max-header-value-length", 0))
+            max_header = safe_int(limits.get("max-header-value-length", 0))
             if max_header == 0 or max_header > 8192:
                 self.findings.append({
                     "id": "WAF-POL-005",
@@ -109,7 +111,7 @@ class WafPoliciesChecker:
                     "recommendation": "Set max header value length to 8192 or less to prevent header injection attacks",
                     "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/request-limits -H 'Authorization: Basic <token>' -d \"{'max-header-value-length':'8192'}'''")
                 })
-            max_body = int(limits.get("max-request-length", 0))
+            max_body = safe_int(limits.get("max-request-length", 0))
             if max_body == 0 or max_body > 65536:
                 self.findings.append({
                     "id": "WAF-POL-006",
@@ -122,7 +124,7 @@ class WafPoliciesChecker:
                     "recommendation": "Set max request body length to limit large payload attacks",
                     "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/request-limits -H 'Authorization: Basic <token>' -d \"{'max-request-length':'65536'}'''")
                 })
-            max_params = int(limits.get("max-number-of-parameters", 0))
+            max_params = safe_int(limits.get("max-number-of-parameters", 0))
             if max_params == 0 or max_params > 256:
                 self.findings.append({
                     "id": "WAF-POL-007",
@@ -378,7 +380,7 @@ class WafPoliciesChecker:
                     "recommendation": "Enable JSON security to validate JSON request bodies and prevent JSON injection attacks",
                     "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/security-policies/" + name + "/json-security -H 'Authorization: Basic <token>' -d \"{'status':'on'}'''")
                 })
-            max_depth = int(json_sec.get("max-depth", 0))
+            max_depth = safe_int(json_sec.get("max-depth", 0))
             if max_depth == 0 or max_depth > 64:
                 self.findings.append({
                     "id": "WAF-POL-024",

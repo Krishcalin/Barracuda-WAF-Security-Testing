@@ -1,6 +1,7 @@
 """Adaptive profiling and learning mode security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class AdaptiveProfilingChecker:
         for svc in services:
             name = svc.get("name", svc.get("id", "unknown"))
             detail = self.api.get_service_detail(name)
-            cfg = detail.get("data", detail) if isinstance(detail, dict) else svc
+            cfg = extract_config(detail, fallback=svc) if isinstance(detail, dict) else svc
             self._check_adaptive_profiling_status(name, cfg)
             self._check_learning_mode(name, cfg)
             self._check_trusted_hosts_learning(name, cfg)
@@ -29,7 +30,7 @@ class AdaptiveProfilingChecker:
         for policy in policies:
             pname = policy.get("name", policy.get("id", "unknown"))
             detail = self.api.get_security_policy(pname) if isinstance(pname, str) else policy
-            pcfg = detail.get("data", detail) if isinstance(detail, dict) else policy
+            pcfg = extract_config(detail, fallback=policy) if isinstance(detail, dict) else policy
             self._check_url_profiles(pname, pcfg)
             self._check_parameter_profiles(pname, pcfg)
             self._check_profiling_enforcement(pname, pcfg)

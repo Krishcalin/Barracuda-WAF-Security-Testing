@@ -1,6 +1,7 @@
 """Content rules, URL rewriting, and redirect security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class ContentRulesChecker:
             name = svc.get("name", svc.get("id", "unknown"))
             rules = self.api.get_content_rules(name)
             detail = self.api.get_service_detail(name)
-            cfg = detail.get("data", detail) if isinstance(detail, dict) else svc
+            cfg = extract_config(detail, fallback=svc) if isinstance(detail, dict) else svc
 
             self._check_content_rules_exist(name, rules)
             self._check_open_redirects(name, rules, cfg)

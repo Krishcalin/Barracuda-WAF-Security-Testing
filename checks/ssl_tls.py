@@ -2,6 +2,7 @@
 
 import logging
 from datetime import datetime, timezone
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +33,8 @@ class SslTlsChecker:
             if isinstance(svc_type, str) and svc_type.upper() in ("HTTP", "REDIRECT"):
                 continue
             detail = self.api.get_service_detail(name)
-            cfg = detail.get("data", detail) if isinstance(detail, dict) else svc
-            ssl_cfg = cfg.get("ssl-security", cfg.get("ssl", {}))
+            cfg = extract_config(detail, fallback=svc)
+            ssl_cfg = deep_get(cfg, "ssl-security", "ssl", "SSL", default={})
             if isinstance(ssl_cfg, dict):
                 self._check_tls_versions(name, ssl_cfg)
                 self._check_cipher_suites(name, ssl_cfg)
@@ -154,7 +155,7 @@ class SslTlsChecker:
                     "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/hsts -H 'Authorization: Basic <token>' -d '{'status':'on','max-age':'31536000'}'")
                 })
             else:
-                max_age = int(hsts.get("max-age", 0))
+                max_age = safe_int(hsts.get("max-age", 0))
                 if max_age < 31536000:
                     self.findings.append({
                         "id": "SSL-007",

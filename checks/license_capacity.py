@@ -1,6 +1,7 @@
 """License utilization and capacity checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +17,9 @@ class LicenseCapacityChecker:
     def run_all(self):
         logger.info("Running license and capacity checks...")
         sys_info = self.api.get_system_info()
-        cfg = sys_info.get("data", sys_info) if isinstance(sys_info, dict) else {}
+        cfg = extract_config(sys_info, fallback={}) if isinstance(sys_info, dict) else {}
         license_info = self.api.get_license_info()
-        license_data = license_info.get("data", license_info) if isinstance(license_info, dict) else {}
+        license_data = extract_config(license_info, fallback={}) if isinstance(license_info, dict) else {}
         if license_data and "license" not in cfg:
             cfg["license"] = license_data
         services = self.api.get_services()

@@ -1,6 +1,7 @@
 """Network configuration security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class NetworkChecker:
         vlans = self.api.get_vlans()
         cluster = self.api.get_cluster_config()
         admin_cfg = self.api.get_admin_config()
-        cfg = admin_cfg.get("data", admin_cfg) if isinstance(admin_cfg, dict) else {}
+        cfg = extract_config(admin_cfg) if isinstance(admin_cfg, dict) else {}
 
         self._check_management_interface(interfaces, cfg)
         self._check_vlan_separation(vlans)
@@ -76,7 +77,7 @@ class NetworkChecker:
 
     def _check_ha_configuration(self, cluster):
         if isinstance(cluster, dict):
-            data = cluster.get("data", cluster)
+            data = extract_config(cluster)
             enabled = data.get("status", data.get("ha-mode", data.get("enabled", "")))
             if isinstance(enabled, str) and enabled.lower() in ("off", "disabled", "standalone", ""):
                 self.findings.append({

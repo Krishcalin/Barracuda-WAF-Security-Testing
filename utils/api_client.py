@@ -226,33 +226,105 @@ class BarracudaWafClient:
                 time.sleep(1 * attempt)
         return {}
 
-    def get_list(self, endpoint, key=None):
-        """GET and extract list from response. Barracuda API wraps lists in
-        {'data': {<key>: [...]}} or {'object': [...]} patterns."""
-        data = self.get(endpoint)
-        if not data:
-            return []
-        if isinstance(data, list):
+    @staticmethod
+    def _unwrap_response(data):
+        """Recursively unwrap Barracuda API response wrappers.
+        The API nests data in various ways:
+          {"data": {"key": {...}}}
+          {"data": {"key": [{...}, ...]}}
+          {"object": [...]}
+          {"<resource>": {...}}
+        Returns the innermost useful payload."""
+        if not isinstance(data, dict):
             return data
-        if "data" in data:
+        # Unwrap "data" wrapper
+        if "data" in data and len(data) <= 3:  # data + maybe token/id
             inner = data["data"]
-            if isinstance(inner, list):
+            if isinstance(inner, (list, str)):
                 return inner
             if isinstance(inner, dict):
-                if key and key in inner:
-                    return inner[key] if isinstance(inner[key], list) else [inner[key]]
-                for v in inner.values():
-                    if isinstance(v, list):
-                        return v
-                return [inner]
+                return inner
+        # Unwrap "object" wrapper
         if "object" in data:
-            obj = data["object"]
-            return obj if isinstance(obj, list) else [obj]
-        return [data] if isinstance(data, dict) else []
+            return data["object"]
+        return data
+
+    def get_list(self, endpoint, key=None):
+        """GET and extract list from response. Handles Barracuda API formats:
+          {'data': {<key>: [...]}}           — keyed list
+          {'data': [...]}}                   — direct list
+          {'data': {'name1': {...}, ...}}     — dict of named objects
+          {'object': [...]}                  — object wrapper
+        """
+        raw = self.get(endpoint)
+        if not raw:
+            return []
+        if isinstance(raw, list):
+            return raw
+        data = self._unwrap_response(raw)
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict):
+            # Try keyed extraction first
+            if key and key in data:
+                val = data[key]
+                return val if isinstance(val, list) else [val]
+            # Check if any value is a list (e.g., {"services": [...]})
+            for v in data.values():
+                if isinstance(v, list):
+                    return v
+            # Dict of named objects: {"policy1": {...}, "policy2": {...}}
+            # Convert to list, injecting the key as "name" if missing
+            if all(isinstance(v, dict) for v in data.values()):
+                result = []
+                for obj_name, obj_data in data.items():
+                    if isinstance(obj_data, dict):
+                        if "name" not in obj_data:
+                            obj_data["name"] = obj_name
+                        result.append(obj_data)
+                if result:
+                    return result
+            return [data]
+        return []
+
+    def get_detail(self, endpoint):
+        """GET a single resource and unwrap to the config dict."""
+        raw = self.get(endpoint)
+        if not raw:
+            return {}
+        data = self._unwrap_response(raw)
+        if isinstance(data, dict):
+            # If the unwrapped data has exactly one key that's a dict,
+            # it's likely the named resource wrapper: {"policy_name": {config}}
+            non_meta = {k: v for k, v in data.items()
+                        if isinstance(v, dict) and k not in ("token", "id", "meta")}
+            if len(non_meta) == 1:
+                return next(iter(non_meta.values()))
+            return data
+        return {}
+
+    def verify_connectivity(self):
+        """Test that authenticated requests work after login.
+        Returns (success: bool, message: str)."""
+        if not self.token:
+            return False, "Not logged in"
+        test_url = f"{self.base_url}/system"
+        try:
+            resp = self.session.get(test_url, verify=self.verify_ssl, timeout=self.timeout)
+            if resp.status_code == 200:
+                return True, "OK"
+            elif resp.status_code == 401:
+                return False, f"Authentication rejected (401) — token may be invalid"
+            elif resp.status_code == 403:
+                return False, f"Permission denied (403) — user lacks admin privileges"
+            else:
+                return False, f"Unexpected status {resp.status_code}"
+        except Exception as e:
+            return False, str(e)
 
     def get_system_info(self):
         """Get system/firmware information."""
-        return self.get("/system") or {}
+        return self.get_detail("/system")
 
     def get_services(self):
         """Get all configured virtual services."""
@@ -260,7 +332,7 @@ class BarracudaWafClient:
 
     def get_service_detail(self, service_name):
         """Get detailed config for a specific service."""
-        return self.get(f"/services/{service_name}")
+        return self.get_detail(f"/services/{service_name}")
 
     def get_security_policies(self):
         """Get all WAF security policies."""
@@ -268,7 +340,7 @@ class BarracudaWafClient:
 
     def get_security_policy(self, policy_name):
         """Get a specific security policy."""
-        return self.get(f"/security-policies/{policy_name}")
+        return self.get_detail(f"/security-policies/{policy_name}")
 
     def get_certificates(self):
         """Get all SSL certificates."""
@@ -300,23 +372,23 @@ class BarracudaWafClient:
 
     def get_logging_config(self):
         """Get syslog and logging configuration."""
-        return self.get("/syslog") or {}
+        return self.get_detail("/syslog")
 
     def get_admin_config(self):
         """Get administrative access settings."""
-        return self.get("/admin") or {}
+        return self.get_detail("/admin")
 
     def get_cluster_config(self):
         """Get HA/cluster configuration."""
-        return self.get("/cluster") or {}
+        return self.get_detail("/cluster")
 
     def get_backup_config(self):
         """Get backup configuration."""
-        return self.get("/backup") or {}
+        return self.get_detail("/backup")
 
     def get_license_info(self):
         """Get license and subscription information."""
-        return self.get("/license") or {}
+        return self.get_detail("/license")
 
 
 class AuthenticationError(Exception):

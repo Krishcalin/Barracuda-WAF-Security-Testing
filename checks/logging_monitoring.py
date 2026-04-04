@@ -1,6 +1,7 @@
 """Logging and monitoring security checks."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +17,9 @@ class LoggingMonitoringChecker:
     def run_all(self):
         logger.info("Running logging and monitoring checks...")
         log_cfg = self.api.get_logging_config()
-        cfg = log_cfg.get("data", log_cfg) if isinstance(log_cfg, dict) else {}
+        cfg = extract_config(log_cfg, fallback={}) if isinstance(log_cfg, dict) else {}
         admin_cfg = self.api.get_admin_config()
-        admin = admin_cfg.get("data", admin_cfg) if isinstance(admin_cfg, dict) else {}
+        admin = extract_config(admin_cfg, fallback={}) if isinstance(admin_cfg, dict) else {}
 
         self._check_syslog_forwarding(cfg)
         self._check_syslog_tls(cfg)

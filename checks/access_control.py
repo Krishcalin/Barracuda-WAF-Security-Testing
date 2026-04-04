@@ -2,6 +2,7 @@
 brute-force prevention, URL access rules."""
 
 import logging
+from utils.config_helper import safe_int, deep_get, extract_config
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class AccessControlChecker:
             acls = self.api.get_access_control(name)
             rate = self.api.get_rate_control(name)
             detail = self.api.get_service_detail(name)
-            cfg = detail.get("data", detail) if isinstance(detail, dict) else svc
+            cfg = extract_config(detail, fallback=svc)
 
             self._check_global_acls(name, acls)
             self._check_geo_blocking(name, cfg)
@@ -133,7 +134,7 @@ class AccessControlChecker:
                     "recommendation": "Enable brute-force prevention to protect login forms from credential stuffing attacks",
                     "remediation_cmd": ("curl -X PUT https://<WAF_IP>:8443/restapi/v3.2/services/" + name + "/brute-force-prevention -H 'Authorization: Basic <token>' -d '{{'status':'enabled','max-attempts':'5'}}'")
                 })
-            max_attempts = int(bf.get("max-attempts", bf.get("max-login-attempts", 0)))
+            max_attempts = safe_int(bf.get("max-attempts", bf.get("max-login-attempts", 0)))
             if max_attempts > 10:
                 self.findings.append({
                     "id": "ACL-008",

@@ -179,6 +179,15 @@ def main():
         logger.error("Connection failed: %s", e)
         sys.exit(1)
 
+    # Verify connectivity works after login
+    ok, msg = client.verify_connectivity()
+    if not ok:
+        logger.error("Post-login connectivity check failed: %s", msg)
+        logger.error("The scanner authenticated but API requests are being rejected.")
+        logger.error("Check: (1) user has admin privileges, (2) correct API port, (3) WAF firmware supports REST API v3.2")
+        sys.exit(1)
+    logger.info("Connectivity verified — API requests working")
+
     # Run checks
     all_findings = []
     for check_name in enabled:

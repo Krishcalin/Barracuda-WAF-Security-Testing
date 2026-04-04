@@ -74,17 +74,35 @@ class BarracudaWafClient:
             try:
                 resp = self.session.get(url, params=params,
                                         verify=self.verify_ssl, timeout=self.timeout)
+
+                # 401 — token expired, re-authenticate once and retry
                 if resp.status_code == 401:
-                    logger.warning("Token expired, re-authenticating...")
-                    self.login()
+                    logger.warning("Token expired on %s, re-authenticating...", endpoint)
+                    try:
+                        self.login()
+                    except (AuthenticationError, ConnectionError) as auth_err:
+                        logger.error("Re-authentication failed: %s", auth_err)
+                        return {}
                     resp = self.session.get(url, params=params,
                                             verify=self.verify_ssl, timeout=self.timeout)
-                resp.raise_for_status()
-                return resp.json() if resp.text.strip() else {}
-            except requests.exceptions.HTTPError as e:
+                    if resp.status_code == 401:
+                        logger.error("Still 401 after re-auth on %s — check credentials", endpoint)
+                        return {}
+
+                # 403 — insufficient permissions, do not retry
+                if resp.status_code == 403:
+                    logger.warning("Permission denied (403) on %s — "
+                                   "endpoint requires higher privileges", endpoint)
+                    return {}
+
+                # 404 — endpoint not available on this WAF version
                 if resp.status_code == 404:
                     logger.debug("Endpoint not found: %s", endpoint)
                     return {}
+
+                resp.raise_for_status()
+                return resp.json() if resp.text.strip() else {}
+            except requests.exceptions.HTTPError as e:
                 if attempt == self.max_retries:
                     logger.error("GET %s failed after %d attempts: %s", endpoint, attempt, e)
                     return {}
